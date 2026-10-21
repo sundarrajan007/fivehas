@@ -2735,28 +2735,252 @@
         <!-- PROFILE SECTION -->
         <div id="profile" class="dashboard-section">
             <div class="card">
-                <h3 class="section-title"><i class="fas fa-user-edit"></i> {{ 'Update' if student else 'Add' }} Career Profile</h3>
-                <form action="/save_profile" method="POST" novalidate>
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; margin-bottom: 20px;">
+                    <h3 class="section-title" style="margin-bottom: 0;">
+                        <i class="fas fa-user-edit"></i> {{ 'Update' if student else 'Add' }} Career Profile
+                    </h3>
+                </div>
+
+                <!-- RESUME UPLOAD, ANALYSIS & AUTO-FILL SECTION -->
+                <div class="resume-upload-card" id="resumeUploadSection">
+                    <div class="resume-upload-header">
+                        <div class="resume-header-text">
+                            <h4><i class="fas fa-robot"></i> AI Resume Analyzer &amp; Improvement Engine</h4>
+                            <p>Upload your resume in <strong>PDF</strong> or <strong>DOCX</strong> format. Our AI will analyze grammar, formatting, ATS compatibility, and content quality, provide actionable recommendations, and auto-populate your profile.</p>
+                        </div>
+                        <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                            <span class="secure-badge" id="aiEngineBadge">
+                                <i class="fas fa-microchip"></i> <span id="aiEngineName">AI Engine: Advanced Heuristic &amp; ATS Parser</span>
+                            </span>
+                            <span class="secure-badge" style="background: rgba(34, 197, 94, 0.15); border-color: rgba(34, 197, 94, 0.3); color: var(--success);">
+                                <i class="fas fa-shield-alt"></i> Private &amp; Secure
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- File Drop / Select Area -->
+                    <div class="resume-upload-controls">
+                        <div class="resume-dropzone" id="resumeDropZone" onclick="document.getElementById('resumeFileInput').click()">
+                            <i class="fas fa-cloud-upload-alt dropzone-icon"></i>
+                            <div class="dropzone-text">
+                                <span class="dropzone-title" id="resumeFileLabel">Click or Drag &amp; Drop Resume (.pdf, .docx)</span>
+                                <span class="dropzone-subtitle" id="resumeUploadStatusSubtitle">Supported formats: PDF, DOCX (Max size: 10MB)</span>
+                            </div>
+                        </div>
+
+                        <input type="file" id="resumeFileInput" accept=".pdf,.docx" style="display: none;" onchange="handleResumeFileSelected(this)">
+
+                        <div class="resume-action-buttons">
+                            <button type="button" id="btnUploadResume" class="btn btn-primary" onclick="uploadAndParseResume()">
+                                <i class="fas fa-magnifying-glass-chart"></i> <span>Analyze Resume &amp; Auto-Fill</span>
+                            </button>
+                            <button type="button" id="btnReplaceResume" class="btn-clear-resume" onclick="resetResumeUpload()" title="Replace with another resume" style="display: none;">
+                                <i class="fas fa-repeat"></i> <span>Replace Resume</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Active File Info Banner -->
+                    <div id="activeFileInfoBar" style="display: none; margin-top: 12px; padding: 10px 16px; background: rgba(15, 23, 42, 0.65); border: 1px solid rgba(96, 165, 250, 0.3); border-radius: 8px; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+                        <div style="display: flex; align-items: center; gap: 10px; font-size: 0.85rem;">
+                            <i class="fas fa-file-lines" style="color: var(--accent); font-size: 1.1rem;"></i>
+                            <span>Active Resume: <strong id="activeResumeFilename" style="color: var(--text-light);">None</strong></span>
+                            <span id="activeResumeStatusBadge" style="background: rgba(34, 197, 94, 0.2); color: #86efac; border: 1px solid rgba(34, 197, 94, 0.4); padding: 2px 8px; border-radius: 12px; font-size: 0.75rem;">Analyzed</span>
+                        </div>
+                        <div style="display: flex; gap: 8px;">
+                            <button type="button" onclick="document.getElementById('resumeFileInput').click()" style="background: transparent; border: 1px solid rgba(255,255,255,0.2); color: var(--accent); font-size: 0.78rem; padding: 4px 10px; border-radius: 6px; cursor: pointer;">
+                                <i class="fas fa-arrow-up-from-bracket"></i> Change File
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Status Notification Alert -->
+                    <div id="resumeStatusAlert" class="resume-status-alert" style="display: none;"></div>
+
+                    <!-- Extracted Details Review Banner -->
+                    <div id="resumeParsedSummary" class="resume-parsed-summary" style="display: none;">
+                        <div class="summary-header">
+                            <span class="summary-title"><i class="fas fa-check-circle"></i> Extracted Candidate Details</span>
+                            <span class="summary-note">Review the auto-filled fields below, refine them with AI recommendations, and save your profile.</span>
+                        </div>
+                        <div id="resumeSummaryPills" class="summary-pills"></div>
+                    </div>
+
+                    <!-- ========================================== -->
+                    <!-- AI RESUME SCORE & ANALYSIS DASHBOARD -->
+                    <!-- ========================================== -->
+                    <div id="resumeScoreDashboard" class="resume-score-dashboard" style="display: none; margin-top: 24px;">
+                        <!-- Overall Score & Overview Grid -->
+                        <div class="score-dashboard-header">
+                            <div class="overall-score-panel">
+                                <div class="overall-score-circle">
+                                    <span class="score-number" id="dashOverallScore">0</span>
+                                    <span class="score-label">/ 100</span>
+                                </div>
+                                <div class="overall-score-info">
+                                    <div style="display: flex; align-items: center; gap: 8px;">
+                                        <h3 style="color: var(--text-light); margin: 0; font-size: 1.25rem;">Resume Quality Score</h3>
+                                        <span id="dashOverallBadge" class="score-status-badge">Good</span>
+                                    </div>
+                                    <p style="font-size: 0.82rem; color: var(--text-muted); margin: 6px 0 0 0; line-height: 1.4;">
+                                        Comprehensive multi-dimensional evaluation based on grammar, technical skill variety, measurable project impact, and ATS indexing standards.
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="dashboard-quick-actions">
+                                <button type="button" class="btn btn-sm btn-outline" onclick="reanalyzeCurrentForm()" style="background: rgba(37, 99, 235, 0.15); border: 1px solid rgba(96, 165, 250, 0.35); color: var(--accent); padding: 8px 14px; border-radius: 8px; font-size: 0.82rem; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
+                                    <i class="fas fa-rotate"></i> Re-analyze Content
+                                </button>
+                                <button type="button" class="btn btn-sm" onclick="downloadImprovedResume()" style="background: linear-gradient(135deg, #059669, #10b981); color: white; border: none; padding: 8px 14px; border-radius: 8px; font-size: 0.82rem; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
+                                    <i class="fas fa-file-pdf"></i> Download Improved Resume
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- 5 Category Metrics Grid -->
+                        <div class="category-scores-grid">
+                            <!-- Grammar & Language -->
+                            <div class="category-score-card" id="card_cat_grammar">
+                                <div class="cat-card-header">
+                                    <span class="cat-name"><i class="fas fa-spell-check"></i> Grammar &amp; Language</span>
+                                    <span class="cat-score-badge" id="score_cat_grammar">0/100</span>
+                                </div>
+                                <div class="cat-progress-bar">
+                                    <div class="cat-progress-fill" id="fill_cat_grammar" style="width: 0%;"></div>
+                                </div>
+                                <div class="cat-reason" id="reason_cat_grammar">Spelling, active voice, and clear sentence structure.</div>
+                            </div>
+
+                            <!-- Skills & Relevance -->
+                            <div class="category-score-card" id="card_cat_skills">
+                                <div class="cat-card-header">
+                                    <span class="cat-name"><i class="fas fa-laptop-code"></i> Skills &amp; Relevance</span>
+                                    <span class="cat-score-badge" id="score_cat_skills">0/100</span>
+                                </div>
+                                <div class="cat-progress-bar">
+                                    <div class="cat-progress-fill" id="fill_cat_skills" style="width: 0%;"></div>
+                                </div>
+                                <div class="cat-reason" id="reason_cat_skills">Breadth of tools, frameworks, and domain competencies.</div>
+                            </div>
+
+                            <!-- Formatting & Readability -->
+                            <div class="category-score-card" id="card_cat_formatting">
+                                <div class="cat-card-header">
+                                    <span class="cat-name"><i class="fas fa-align-left"></i> Formatting &amp; Readability</span>
+                                    <span class="cat-score-badge" id="score_cat_formatting">0/100</span>
+                                </div>
+                                <div class="cat-progress-bar">
+                                    <div class="cat-progress-fill" id="fill_cat_formatting" style="width: 0%;"></div>
+                                </div>
+                                <div class="cat-reason" id="reason_cat_formatting">Consistent headers, clean layout, and concise bullets.</div>
+                            </div>
+
+                            <!-- ATS Compatibility -->
+                            <div class="category-score-card" id="card_cat_ats">
+                                <div class="cat-card-header">
+                                    <span class="cat-name"><i class="fas fa-filter"></i> ATS Compatibility</span>
+                                    <span class="cat-score-badge" id="score_cat_ats">0/100</span>
+                                </div>
+                                <div class="cat-progress-bar">
+                                    <div class="cat-progress-fill" id="fill_cat_ats" style="width: 0%;"></div>
+                                </div>
+                                <div class="cat-reason" id="reason_cat_ats">Standard header naming and parser keyword indexing.</div>
+                            </div>
+
+                            <!-- Content Completeness -->
+                            <div class="category-score-card" id="card_cat_completeness">
+                                <div class="cat-card-header">
+                                    <span class="cat-name"><i class="fas fa-list-check"></i> Content Completeness</span>
+                                    <span class="cat-score-badge" id="score_cat_completeness">0/100</span>
+                                </div>
+                                <div class="cat-progress-bar">
+                                    <div class="cat-progress-fill" id="fill_cat_completeness" style="width: 0%;"></div>
+                                </div>
+                                <div class="cat-reason" id="reason_cat_completeness">Coverage of summary, metrics, education, and projects.</div>
+                            </div>
+                        </div>
+
+                        <!-- Top Improvement Highlights Banner -->
+                        <div id="dashTopHighlights" class="dash-top-highlights" style="display: none;">
+                            <div style="font-weight: 600; color: #fbbf24; font-size: 0.88rem; margin-bottom: 6px; display: flex; align-items: center; gap: 6px;">
+                                <i class="fas fa-lightbulb"></i> Top Priority Improvement Opportunities
+                            </div>
+                            <div id="dashTopHighlightsList" style="display: flex; flex-direction: column; gap: 6px; font-size: 0.82rem; color: #cbd5e1;"></div>
+                        </div>
+
+                        <!-- AI Disclaimer -->
+                        <div class="dash-disclaimer">
+                            <i class="fas fa-circle-info"></i>
+                            <span id="dashDisclaimerText">Scores and recommendations are AI-generated estimates based on industry ATS benchmarks, not guaranteed hiring predictions.</span>
+                        </div>
+
+                        <!-- ========================================== -->
+                        <!-- AI RECOMMENDATIONS & MISTAKES EXPLORER -->
+                        <!-- ========================================== -->
+                        <div class="issues-explorer-section">
+                            <div class="issues-section-header">
+                                <div>
+                                    <h4 style="margin: 0; color: var(--text-light); font-size: 1.05rem; display: flex; align-items: center; gap: 8px;">
+                                        <i class="fas fa-wand-magic-sparkles" style="color: var(--accent);"></i>
+                                        Detected Issues &amp; AI Recommendations
+                                    </h4>
+                                    <p style="margin: 4px 0 0 0; font-size: 0.82rem; color: var(--text-muted);">
+                                        Review detected weaknesses below. Click <strong>"Apply Suggestion"</strong> to selectively incorporate improvements into your profile.
+                                    </p>
+                                </div>
+                            </div>
+
+                            <!-- Filter Tabs -->
+                            <div class="issues-filter-tabs">
+                                <button type="button" class="issue-tab active" onclick="filterIssues('all', this)">
+                                    All Issues (<span id="count_all">0</span>)
+                                </button>
+                                <button type="button" class="issue-tab" onclick="filterIssues('High', this)">
+                                    <span class="tab-dot" style="background:#ef4444;"></span> High Priority (<span id="count_high">0</span>)
+                                </button>
+                                <button type="button" class="issue-tab" onclick="filterIssues('Grammar & Language', this)">
+                                    Grammar &amp; Language (<span id="count_grammar">0</span>)
+                                </button>
+                                <button type="button" class="issue-tab" onclick="filterIssues('Projects & Experience', this)">
+                                    Projects &amp; Impact (<span id="count_projects">0</span>)
+                                </button>
+                                <button type="button" class="issue-tab" onclick="filterIssues('Skills & Relevance', this)">
+                                    Skills (<span id="count_skills">0</span>)
+                                </button>
+                                <button type="button" class="issue-tab" onclick="filterIssues('ATS & Formatting', this)">
+                                    ATS &amp; Formatting (<span id="count_ats">0</span>)
+                                </button>
+                            </div>
+
+                            <!-- Issues Container -->
+                            <div id="resumeIssuesList" class="issues-list-container">
+                                <!-- Populated dynamically by JavaScript -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <form id="careerProfileForm" action="/save_profile" method="POST" novalidate>
                     <div class="form-grid">
                         <div class="form-group">
                             <label>Full Name</label>
-                            <input type="text" name="full_name" value="{{ student[2] if student else '' }}" required>
+                            <input type="text" id="prof_full_name" name="full_name" value="{{ student[2] if student else '' }}" required>
                         </div>
                         <div class="form-group">
                             <label>Register Number</label>
-                            <input type="text" name="register_number" value="{{ student[3] if student else '' }}" required>
+                            <input type="text" id="prof_register_number" name="register_number" value="{{ student[3] if student else '' }}" required>
                         </div>
                         <div class="form-group">
                             <label>College Name</label>
-                            <input type="text" name="college_name" value="{{ student[4] if student else '' }}" required>
+                            <input type="text" id="prof_college_name" name="college_name" value="{{ student[4] if student else '' }}" required>
                         </div>
                         <div class="form-group">
                             <label>Batch Year</label>
-                            <input type="text" name="batch_year" value="{{ student[5] if student else '' }}" required>
+                            <input type="text" id="prof_batch_year" name="batch_year" value="{{ student[5] if student else '' }}" required>
                         </div>
                         <div class="form-group">
                             <label>Current Semester</label>
-                            <select name="current_semester">
+                            <select id="prof_current_semester" name="current_semester">
                                 {% for i in range(1, 9) %}
                                 <option value="{{ i }}" {{ 'selected' if student and student[6] == i|string else '' }}>Semester {{ i }}</option>
                                 {% endfor %}
@@ -2764,33 +2988,43 @@
                         </div>
                         <div class="form-group">
                             <label>Location</label>
-                            <input type="text" name="location" value="{{ student[12] if student else '' }}" placeholder="City, State">
+                            <input type="text" id="prof_location" name="location" value="{{ student[12] if student else '' }}" placeholder="City, State">
                         </div>
                         <div class="form-group full-width">
                             <label>Skills (comma separated)</label>
-                            <textarea name="skills" rows="2" required>{{ student[7] if student else '' }}</textarea>
+                            <textarea id="prof_skills" name="skills" rows="2" required>{{ student[7] if student else '' }}</textarea>
                         </div>
                         <div class="form-group full-width">
                             <label>Skill Ratings (1-5 per skill, e.g., Python: 4, Java: 3)</label>
-                            <input type="text" name="skill_ratings" value="{{ student[8] if student else '' }}" placeholder="Python: 4, SQL: 5" required>
+                            <input type="text" id="prof_skill_ratings" name="skill_ratings" value="{{ student[8] if student else '' }}" placeholder="Python: 4, SQL: 5" required>
                         </div>
                         <div class="form-group full-width">
                             <label>Interests (Career domains)</label>
-                            <input type="text" name="interests" value="{{ student[10] if student else '' }}" placeholder="Data Science, Web Dev, AI" required>
+                            <input type="text" id="prof_interests" name="interests" value="{{ student[10] if student else '' }}" placeholder="Data Science, Web Dev, AI" required>
                         </div>
                         <div class="form-group full-width">
                             <label>Tech Stack</label>
-                            <input type="text" name="tech_stack" value="{{ student[11] if student else '' }}" placeholder="MERN, Django, Flutter">
+                            <input type="text" id="prof_tech_stack" name="tech_stack" value="{{ student[11] if student else '' }}" placeholder="MERN, Django, Flutter">
                         </div>
                         <div class="form-group full-width">
-                            <label>Experience (Optional)</label>
-                            <textarea name="experience" rows="3">{{ student[9] if student else '' }}</textarea>
+                            <label>Experience &amp; Projects (Summary, Work, Projects, Certifications)</label>
+                            <textarea id="prof_experience" name="experience" rows="5" placeholder="Work experience, project descriptions, and professional summary">{{ student[9] if student else '' }}</textarea>
                         </div>
                     </div>
-                    <button type="submit" class="btn btn-primary" style="margin-top: 25px;">
-                        <i class="fas fa-magic"></i> View Results & Refresh Recommendations
-                    </button>
-    </form>
+                    
+                    <!-- Action Buttons Row -->
+                    <div style="display: flex; flex-wrap: wrap; gap: 15px; margin-top: 25px; align-items: center;">
+                        <button type="submit" class="btn btn-primary" style="flex: 1; min-width: 250px;">
+                            <i class="fas fa-save"></i> Save Profile &amp; Refresh Recommendations
+                        </button>
+                        <button type="button" class="btn btn-success" onclick="downloadImprovedResume()" style="background: linear-gradient(135deg, #059669, #10b981); color: white; border: none; padding: 12px 22px; border-radius: 8px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 8px;">
+                            <i class="fas fa-file-pdf"></i> Download Improved Resume (ATS PDF)
+                        </button>
+                        <button type="button" class="btn btn-secondary" onclick="reanalyzeCurrentForm()" style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.2); color: var(--text-light); padding: 12px 18px; border-radius: 8px; font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; gap: 8px;">
+                            <i class="fas fa-rotate"></i> Re-analyze Revised Content
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
 
@@ -2889,50 +3123,137 @@
 
         <!-- CAREER PATH & JOBS SECTION -->
         <div id="jobs" class="dashboard-section">
-    <div class="card">
-                <h3 class="section-title"><i class="fas fa-route"></i> Career Path & Matched Roles</h3>
-                <p style="margin-bottom: 20px; color: var(--text-muted);">Based on your skills ({{ student[7] if student else '' }}), our AI has identified the following career opportunities:</p>
-                
+            <div class="card">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 15px; margin-bottom: 20px;">
+                    <div>
+                        <h3 class="section-title" style="margin-bottom: 6px;"><i class="fas fa-route"></i> Career Path &amp; Matched Roles</h3>
+                        <p style="color: var(--text-muted); font-size: 0.9rem; margin: 0;">Explore personalized career tracks based on your skills ({{ student[7] if student and student[7] else 'your profile' }}) and domain interests.</p>
+                    </div>
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <span class="badge" style="background: rgba(37,99,235,0.15); color: var(--accent); padding: 6px 14px; border-radius: 8px; font-size: 0.82rem; border: 1px solid rgba(96,165,250,0.3); font-weight: 600;">
+                            <i class="fas fa-bullseye"></i> AI Match Scored
+                        </span>
+                    </div>
+                </div>
+
                 {% if not student %}
                     <div class="text-center" style="padding: 40px;">
                         <i class="fas fa-user-edit fa-3x" style="color: var(--text-muted); margin-bottom: 15px;"></i>
                         <p class="text-muted">Please complete your career profile first to see recommendations.</p>
-                    </div>
-                {% elif not recommendations %}
-                    <div class="text-center" style="padding: 40px;">
-                        <i class="fas fa-search fa-3x" style="color: var(--text-muted); margin-bottom: 15px;"></i>
-                        <p class="text-muted">No jobs matching your profile were found. Try updating your skills!</p>
+                        <button type="button" class="btn btn-primary" onclick="showSection('profile')" style="margin-top: 10px;">
+                            <i class="fas fa-user-plus"></i> Complete Career Profile
+                        </button>
                     </div>
                 {% else %}
-                    <div class="recommendations-grid">
-                        {% for job in recommendations %}
-                        <div class="job-card">
-                            <div class="match-badge">{{ (job[7] * 100)|int }}% Match</div>
-                            <h4>{{ job[1] }}</h4>
-                            <p style="color: var(--accent); font-weight: 500; font-size: 0.9rem;">🏢 {{ job[4] }}</p>
-                            <p>{{ job[2][:120] }}{{ '...' if job[2]|length > 120 else '' }}</p>
+                    <!-- Role Filter Tabs Bar -->
+                    <div class="career-role-tabs-bar" style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid rgba(255,255,255,0.08);">
+                        <button type="button" class="role-track-tab active" data-role="all" onclick="filterCareerRoles('all', this)">
+                            <i class="fas fa-stars"></i> All Roles <span class="role-count-pill" id="pill_all">{{ role_counts.all if role_counts else (recommendations|length) }}</span>
+                        </button>
+                        <button type="button" class="role-track-tab" data-role="frontend" onclick="filterCareerRoles('frontend', this)">
+                            <i class="fas fa-code"></i> Frontend <span class="role-count-pill" id="pill_frontend">{{ role_counts.frontend if role_counts else 0 }}</span>
+                        </button>
+                        <button type="button" class="role-track-tab" data-role="backend" onclick="filterCareerRoles('backend', this)">
+                            <i class="fas fa-server"></i> Backend <span class="role-count-pill" id="pill_backend">{{ role_counts.backend if role_counts else 0 }}</span>
+                        </button>
+                        <button type="button" class="role-track-tab" data-role="fullstack" onclick="filterCareerRoles('fullstack', this)">
+                            <i class="fas fa-layer-group"></i> Full Stack <span class="role-count-pill" id="pill_fullstack">{{ role_counts.fullstack if role_counts else 0 }}</span>
+                        </button>
+                        <button type="button" class="role-track-tab" data-role="devops_cloud" onclick="filterCareerRoles('devops_cloud', this)">
+                            <i class="fas fa-cloud"></i> DevOps &amp; Cloud <span class="role-count-pill" id="pill_devops_cloud">{{ role_counts.devops_cloud if role_counts else 0 }}</span>
+                        </button>
+                        <button type="button" class="role-track-tab" data-role="data_science" onclick="filterCareerRoles('data_science', this)">
+                            <i class="fas fa-chart-line"></i> Data Science <span class="role-count-pill" id="pill_data_science">{{ role_counts.data_science if role_counts else 0 }}</span>
+                        </button>
+                        <button type="button" class="role-track-tab" data-role="ai_ml" onclick="filterCareerRoles('ai_ml', this)">
+                            <i class="fas fa-brain"></i> AI &amp; ML <span class="role-count-pill" id="pill_ai_ml">{{ role_counts.ai_ml if role_counts else 0 }}</span>
+                        </button>
+                        <button type="button" class="role-track-tab" data-role="mobile" onclick="filterCareerRoles('mobile', this)">
+                            <i class="fas fa-mobile-alt"></i> Mobile <span class="role-count-pill" id="pill_mobile">{{ role_counts.mobile if role_counts else 0 }}</span>
+                        </button>
+                        <button type="button" class="role-track-tab" data-role="qa_testing" onclick="filterCareerRoles('qa_testing', this)">
+                            <i class="fas fa-bug"></i> QA &amp; SRE <span class="role-count-pill" id="pill_qa_testing">{{ role_counts.qa_testing if role_counts else 0 }}</span>
+                        </button>
+                    </div>
 
-                            <!-- Enhanced Skill Analysis -->
-                            <div class="skill-analysis" style="margin: 15px 0; padding: 10px; background: rgba(0,0,0,0.05); border-radius: 8px; border-left: 3px solid var(--accent);">
-                                <div style="font-size: 0.75rem; font-weight: 600; color: var(--accent); margin-bottom: 5px;">SKILL ANALYSIS</div>
-                                <div style="font-size: 0.7rem; color: var(--text); line-height: 1.3;">
-                                    {{ job[8] }}
+                    <!-- Job Recommendations Grid Container -->
+                    <div id="jobsGridContainer" class="recommendations-grid">
+                        {% if recommendations %}
+                            {% for job in recommendations %}
+                            <div class="job-card" id="job_card_{{ job.id }}">
+                                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+                                    <span class="match-badge" style="position: static; display: inline-block;">{{ job.match_score }}% Match</span>
+                                    {% if job.applied %}
+                                        <span class="badge-applied" id="badge_applied_{{ job.id }}" style="background: rgba(34, 197, 94, 0.2); color: #86efac; border: 1px solid rgba(34, 197, 94, 0.4); padding: 3px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: 600;">
+                                            <i class="fas fa-check-circle"></i> Applied
+                                        </span>
+                                    {% endif %}
+                                </div>
+                                <h4 style="margin: 6px 0 4px 0; color: var(--text-light); font-size: 1.05rem;">{{ job.title }}</h4>
+                                <p style="color: var(--accent); font-weight: 500; font-size: 0.88rem; margin-bottom: 8px;">🏢 {{ job.company }}</p>
+                                <p style="font-size: 0.84rem; color: #cbd5e1; line-height: 1.4; margin-bottom: 12px;">{{ job.description[:130] }}{{ '...' if job.description|length > 130 else '' }}</p>
+
+                                <!-- Skill Compatibility Analysis -->
+                                <div class="skill-analysis" style="margin: 12px 0; padding: 10px 12px; background: rgba(15, 23, 42, 0.6); border-radius: 8px; border-left: 3px solid var(--accent);">
+                                    <div style="font-size: 0.72rem; font-weight: 700; color: var(--accent); margin-bottom: 6px; letter-spacing: 0.5px;">SKILL COMPATIBILITY</div>
+                                    {% if job.matched_skills %}
+                                        <div style="margin-bottom: 5px; display: flex; flex-wrap: wrap; gap: 4px;">
+                                            {% for ms in job.matched_skills[:4] %}
+                                                <span style="background: rgba(34, 197, 94, 0.15); color: #86efac; border: 1px solid rgba(34,197,94,0.3); font-size: 0.72rem; padding: 1px 6px; border-radius: 4px;">✓ {{ ms }}</span>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                    {% if job.missing_skills %}
+                                        <div style="display: flex; flex-wrap: wrap; gap: 4px;">
+                                            {% for us in job.missing_skills[:3] %}
+                                                <span style="background: rgba(245, 158, 11, 0.15); color: #fde047; border: 1px solid rgba(245,158,11,0.3); font-size: 0.72rem; padding: 1px 6px; border-radius: 4px;">+ {{ us }}</span>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                    <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 6px; line-height: 1.3;">
+                                        {{ job.match_reason }}
+                                    </div>
+                                </div>
+
+                                <!-- Application Action Button -->
+                                <div style="margin-top: 14px; display: flex; gap: 8px;">
+                                    {% if job.applied %}
+                                        <button type="button" class="btn btn-secondary" disabled style="width: 100%; justify-content: center; background: rgba(34, 197, 94, 0.15); border: 1px solid rgba(34, 197, 94, 0.4); color: #86efac; font-size: 0.82rem; cursor: default;">
+                                            <i class="fas fa-check-double"></i> Applied on {{ job.applied_at[:10] if job.applied_at else 'Portal' }}
+                                        </button>
+                                    {% else %}
+                                        <button type="button" id="btn_apply_job_{{ job.id }}" onclick="openApplyJobModal('{{ job.id }}', '{{ job.title|replace('\'', '\\\'') }}', '{{ job.company|replace('\'', '\\\'') }}')" class="btn btn-primary" style="flex: 1; justify-content: center; font-size: 0.84rem;">
+                                            <i class="fas fa-paper-plane"></i> Apply Now
+                                        </button>
+                                        {% if job.is_external %}
+                                            <a href="{{ job.application_link }}" target="_blank" rel="noopener noreferrer" class="btn btn-outline" style="border: 1px solid rgba(255,255,255,0.2); color: var(--accent); padding: 8px 12px; font-size: 0.82rem; text-decoration: none; border-radius: 8px; display: inline-flex; align-items: center;" title="View official external posting">
+                                                <i class="fas fa-arrow-up-right-from-square"></i>
+                                            </a>
+                                        {% endif %}
+                                    {% endif %}
                                 </div>
                             </div>
-
-                            <div style="margin-bottom: 15px;">
-                                <small style="color: var(--text-muted);"><strong>Required Skills:</strong> {{ job[3][:80] }}{{ '...' if job[3]|length > 80 else '' }}</small>
+                            {% endfor %}
+                        {% else %}
+                            <div class="text-center" style="grid-column: 1 / -1; padding: 40px;">
+                                <i class="fas fa-search fa-3x" style="color: var(--text-muted); margin-bottom: 15px;"></i>
+                                <p class="text-muted">No jobs matching your profile were found. Try updating your skills in Career Profile!</p>
                             </div>
+                        {% endif %}
+                    </div>
 
-                            <a href="{{ job[5] if job[5] else '#' }}" class="btn btn-primary" style="width: 100%; justify-content: center;" {{ 'target="_blank"' if job[5] else '' }}>
-                                {{ 'Apply Now' if job[5] else 'No Link Available' }}
-                            </a>
-                        </div>
-                        {% endfor %}
+                    <!-- Dynamic Empty State (Hidden by default) -->
+                    <div id="jobsEmptyState" style="display: none; text-align: center; padding: 40px 20px; background: rgba(30, 41, 59, 0.4); border-radius: 12px; border: 1px dashed rgba(255,255,255,0.15); margin-top: 20px;">
+                        <i class="fas fa-compass fa-3x" style="color: var(--accent); margin-bottom: 15px; opacity: 0.8;"></i>
+                        <h4 id="jobsEmptyTitle" style="color: var(--text-light); margin-bottom: 8px;">No Openings in this Track Yet</h4>
+                        <p id="jobsEmptyMsg" style="color: var(--text-muted); font-size: 0.9rem; max-width: 500px; margin: 0 auto 20px auto;">
+                            We don't currently have active listings for this role, but your skills align with several related career paths!
+                        </p>
+                        <div id="jobsEmptySuggestions" style="display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;"></div>
                     </div>
                 {% endif %}
             </div>
-    </div>
+        </div>
 
 
         <!-- COURSES SECTION -->
@@ -3465,6 +3786,49 @@
         }
     </script>
 
+    <!-- ========================================== -->
+    <!-- INTERNAL JOB APPLICATION MODAL -->
+    <!-- ========================================== -->
+    <div id="applyJobModal" class="modal-backdrop" style="display: none; position: fixed; inset: 0; z-index: 99999; background: rgba(15, 23, 42, 0.75); backdrop-filter: blur(4px); align-items: center; justify-content: center; padding: 20px;">
+        <div class="modal-card" style="background: #1e293b; border: 1px solid rgba(96, 165, 250, 0.3); border-radius: 14px; max-width: 520px; width: 100%; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.7); overflow: hidden; animation: modalFadeIn 0.25s ease;">
+            <div style="padding: 18px 24px; background: linear-gradient(135deg, rgba(37,99,235,0.2), rgba(15,23,42,0.8)); border-bottom: 1px solid rgba(255,255,255,0.08); display: flex; justify-content: space-between; align-items: center;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <i class="fas fa-paper-plane" style="color: var(--accent); font-size: 1.2rem;"></i>
+                    <div>
+                        <h4 style="margin: 0; color: #fff; font-size: 1.05rem;" id="applyModalTitle">Apply for Position</h4>
+                        <div style="font-size: 0.8rem; color: #94a3b8;" id="applyModalCompany">Company Name</div>
+                    </div>
+                </div>
+                <button type="button" onclick="closeApplyJobModal()" style="background: none; border: none; color: #94a3b8; font-size: 1.4rem; cursor: pointer; padding: 4px; line-height: 1;">&times;</button>
+            </div>
+            
+            <form id="applyJobForm" onsubmit="submitJobApplication(event)" style="padding: 24px;">
+                <input type="hidden" id="applyModalJobId" name="job_id">
+                
+                <div style="margin-bottom: 16px; padding: 12px; background: rgba(15, 23, 42, 0.6); border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); font-size: 0.85rem;">
+                    <div style="color: #cbd5e1; margin-bottom: 4px;"><strong>Applicant:</strong> <span id="applyModalCandidateName">{{ student[2] if student else session.username }}</span></div>
+                    <div style="color: #94a3b8; font-size: 0.8rem;">Your verified career profile details and active resume will be submitted directly to the employer.</div>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 18px;">
+                    <label style="display: block; font-size: 0.82rem; font-weight: 600; color: #cbd5e1; margin-bottom: 6px;">
+                        Quick Note / Statement of Interest (Optional):
+                    </label>
+                    <textarea id="applyModalCoverNote" name="cover_note" rows="3" placeholder="Briefly mention relevant skills, projects, or why you are a great fit for this position..." style="width: 100%; background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; padding: 10px; color: #fff; font-size: 0.85rem; resize: vertical; box-sizing: border-box;"></textarea>
+                </div>
+
+                <div id="applyModalAlert" style="display: none; padding: 10px 14px; border-radius: 8px; margin-bottom: 16px; font-size: 0.85rem;"></div>
+
+                <div style="display: flex; justify-content: flex-end; gap: 10px;">
+                    <button type="button" class="btn btn-secondary" onclick="closeApplyJobModal()" style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); color: #cbd5e1; padding: 8px 16px; border-radius: 8px; font-size: 0.85rem; cursor: pointer;">Cancel</button>
+                    <button type="submit" id="btnSubmitApplication" class="btn btn-primary" style="background: linear-gradient(135deg, #2563eb, #3b82f6); color: white; border: none; padding: 8px 20px; border-radius: 8px; font-weight: 600; font-size: 0.85rem; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
+                        <i class="fas fa-check"></i> <span>Submit Application</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- Floating Chatbot Icon -->
     <div class="chatbot-icon" onclick="toggleChatbot()" title="AI Career Assistant">
         <i class="fas fa-robot"></i>
@@ -3474,10 +3838,10 @@
     <div class="chatbot-modal" id="chatbotModal">
         <div class="chatbot-header">
             <div class="chatbot-header-content">
-                <i class="fas fa-robot"></i>
+                <i class="fas fa-robot" style="font-size: 1.2rem; color: #60a5fa;"></i>
                 <div>
                     <div style="font-size: 1rem; font-weight: 600;">AI Career Assistant</div>
-                    <div style="font-size: 0.7rem; opacity: 0.8;">Online & Ready to Help</div>
+                    <div style="font-size: 0.7rem; opacity: 0.8; color: #86efac;">● Online &amp; Ready to Help</div>
                 </div>
             </div>
             <div class="chatbot-close" onclick="toggleChatbot()">
@@ -3491,27 +3855,34 @@
                     <i class="fas fa-robot" style="color: var(--primary);"></i>
                     <span style="font-weight: 600; color: var(--primary);">CareerBot</span>
                 </div>
-                <div>Hello! I'm your AI career assistant. How can I help you today? 🚀</div>
-                <div style="margin-top: 8px;">
-                    <strong>Quick options:</strong>
+                <div>Hello! I'm your AI career and coding assistant. How can I help you today? 🚀</div>
+                <div style="margin-top: 10px; font-weight: 600; font-size: 0.8rem; color: var(--accent);">
+                    Popular topics (click to ask):
                 </div>
-                <ul style="margin: 8px 0; padding-left: 20px; font-size: 0.85rem;">
-                    <li>💼 "What jobs match my skills?"</li>
-                    <li>📚 "What skills should I learn?"</li>
-                    <li>🎓 "Tell me about courses"</li>
-                    <li>📊 "What's trending in jobs?"</li>
-                    <li>👤 "How to improve my profile?"</li>
-                </ul>
-                <div style="margin-top: 8px; font-size: 0.8rem; opacity: 0.8;">
-                    Or just type your question below! 💬
+                <div style="display: flex; flex-direction: column; gap: 6px; margin-top: 6px;">
+                    <button type="button" class="chat-quick-btn" onclick="sendChatbotMessage('What jobs match my profile skills?')">
+                        💼 "What jobs match my profile skills?"
+                    </button>
+                    <button type="button" class="chat-quick-btn" onclick="sendChatbotMessage('How can I boost my resume ATS score?')">
+                        📄 "How can I boost my resume ATS score?"
+                    </button>
+                    <button type="button" class="chat-quick-btn" onclick="sendChatbotMessage('How to prepare for a technical interview?')">
+                        🎯 "How to prepare for a technical interview?"
+                    </button>
+                    <button type="button" class="chat-quick-btn" onclick="sendChatbotMessage('Give me a roadmap to become a DevOps engineer')">
+                        🚀 "Roadmap to become a DevOps engineer"
+                    </button>
+                    <button type="button" class="chat-quick-btn" onclick="sendChatbotMessage('Explain Python decorators with an example')">
+                        💻 "Explain Python decorators with an example"
+                    </button>
                 </div>
             </div>
         </div>
 
         <div class="chatbot-input-area">
             <div class="chatbot-input-group">
-                <input type="text" class="chatbot-input" id="chatbotInput" placeholder="Type your question here...">
-                <button onclick="sendChatbotMessage()" class="btn btn-primary" style="border-radius: 50%; width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; padding: 0;">
+                <input type="text" class="chatbot-input" id="chatbotInput" placeholder="Ask anything about coding, jobs, resume, courses...">
+                <button type="button" onclick="sendChatbotMessage()" class="btn btn-primary" style="border-radius: 50%; width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; padding: 0;">
                     <i class="fas fa-paper-plane"></i>
                 </button>
             </div>
@@ -3529,18 +3900,21 @@
             } else {
                 modal.style.display = 'flex';
                 icon.style.display = 'none';
+                document.getElementById('chatbotInput')?.focus();
             }
         }
 
-        function sendChatbotMessage() {
+        // Maintain conversation history for multi-turn conversational context
+        let chatbotConversationHistory = [];
+
+        async function sendChatbotMessage(presetText) {
             const input = document.getElementById('chatbotInput');
             const messages = document.getElementById('chatbotMessages');
 
-            if (!input.value.trim()) return;
+            const userText = presetText || (input ? input.value.trim() : '');
+            if (!userText) return;
 
-            const userText = input.value.trim();
-
-            // Add user message
+            // Add user message to UI
             const userDiv = document.createElement('div');
             userDiv.className = 'chatbot-message user';
             userDiv.innerHTML = `
@@ -3548,12 +3922,14 @@
                     <i class="fas fa-user" style="color: white; opacity: 0.8;"></i>
                     <span style="font-weight: 600;">You</span>
                 </div>
-                <div>${userText}</div>
+                <div>${escapeHtml(userText)}</div>
             `;
             messages.appendChild(userDiv);
 
-            // Clear input
-            input.value = '';
+            if (input && !presetText) input.value = '';
+
+            // Record in conversation history
+            chatbotConversationHistory.push({ role: 'user', content: userText });
 
             // Show typing indicator
             const typingDiv = document.createElement('div');
@@ -3564,163 +3940,402 @@
                     <i class="fas fa-robot" style="color: var(--primary);"></i>
                     <span style="font-weight: 600; color: var(--primary);">CareerBot</span>
                 </div>
-                <div style="display: flex; align-items: center; gap: 4px;">
-                    <div class="typing-dot"></div>
-                    <div class="typing-dot"></div>
-                    <div class="typing-dot"></div>
-                    <span style="margin-left: 8px; font-size: 0.8rem; opacity: 0.7;">Typing...</span>
+                <div style="display: flex; align-items: center; gap: 6px;">
+                    <span class="typing-dot"></span>
+                    <span class="typing-dot"></span>
+                    <span class="typing-dot"></span>
+                    <span style="margin-left: 8px; font-size: 0.8rem; opacity: 0.7;">Thinking...</span>
                 </div>
             `;
             messages.appendChild(typingDiv);
             messages.scrollTop = messages.scrollHeight;
 
-            // Simulate bot response with enhanced logic
-            setTimeout(() => {
-                // Remove typing indicator
+            try {
+                const response = await fetch('/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        message: userText,
+                        history: chatbotConversationHistory.slice(-8)
+                    })
+                });
+
+                const data = await response.json();
                 const typingIndicator = document.getElementById('typingIndicator');
                 if (typingIndicator) typingIndicator.remove();
 
+                const botText = data.response || "I didn't receive a valid answer. Please ask again!";
+                chatbotConversationHistory.push({ role: 'assistant', content: botText });
+
+                // Format markdown-like responses (code blocks, bold, bullets)
+                const formattedHtml = formatChatbotMarkdown(botText);
+
                 const botDiv = document.createElement('div');
                 botDiv.className = 'chatbot-message bot';
-
-                let response = "";
-                const lowerText = userText.toLowerCase();
-
-                // Enhanced keyword matching with broader detection
-                const jobKeywords = ['job', 'recommend', 'opportunity', 'position', 'career', 'role'];
-                const skillKeywords = ['skill', 'learn', 'improve', 'develop', 'training', 'education'];
-                const courseKeywords = ['course', 'curriculum', 'program', 'class', 'learning', 'study'];
-                const trendKeywords = ['trend', 'market', 'industry', 'growth', 'future', 'analysis'];
-                const profileKeywords = ['profile', 'update', 'resume', 'cv', 'experience', 'background'];
-
-                const hasJobKeywords = jobKeywords.some(keyword => lowerText.includes(keyword));
-                const hasSkillKeywords = skillKeywords.some(keyword => lowerText.includes(keyword));
-                const hasCourseKeywords = courseKeywords.some(keyword => lowerText.includes(keyword));
-                const hasTrendKeywords = trendKeywords.some(keyword => lowerText.includes(keyword));
-                const hasProfileKeywords = profileKeywords.some(keyword => lowerText.includes(keyword));
-
-                if (hasJobKeywords) {
-                    response = `
-                        <div>Great question about job recommendations! 🚀</div>
-                        <div style="margin-top: 8px;">
-                            <strong>Your personalized job matches are ready!</strong><br>
-                            Check the "Career Path & Jobs" section for AI-powered recommendations tailored to your profile.
-                        </div>
-                        <div style="margin-top: 8px; font-size: 0.8rem; opacity: 0.8;">
-                            💡 Tip: Complete your profile for more accurate matches
-                        </div>
-                    `;
-                } else if (hasSkillKeywords) {
-                    response = `
-                        <div>Skill development is key to career growth! 📈</div>
-                        <div style="margin-top: 8px;">
-                            Explore our <strong>Video Modules</strong> for targeted learning:
-                        </div>
-                        <ul style="margin: 8px 0; padding-left: 20px;">
-                            <li>🎓 Recommended Videos (skill gaps)</li>
-                            <li>💬 Communication Training</li>
-                            <li>🎯 Placement Preparation</li>
-                        </ul>
-                        <div style="margin-top: 8px; font-size: 0.8rem; opacity: 0.8;">
-                            Focus on the Recommended Videos section for skills you need to develop!
-                        </div>
-                    `;
-                } else if (hasCourseKeywords) {
-                    response = `
-                        <div>Excellent choice for structured learning! 🎓</div>
-                        <div style="margin-top: 8px;">
-                            Our <strong>Courses section</strong> offers specialized learning paths:
-                        </div>
-                        <ul style="margin: 8px 0; padding-left: 20px;">
-                            <li>💻 Programming & Technical Skills</li>
-                            <li>🌐 Web Development</li>
-                            <li>📊 Data Science & ML</li>
-                            <li>☁️ DevOps & Cloud Computing</li>
-                            <li>📱 Mobile Development</li>
-                        </ul>
-                        <div style="margin-top: 8px; font-size: 0.8rem; opacity: 0.8;">
-                            Click any category tab to explore courses in that domain!
-                        </div>
-                    `;
-                } else if (hasTrendKeywords) {
-                    response = `
-                        <div>Stay ahead with market insights! 📊</div>
-                        <div style="margin-top: 8px;">
-                            Check the <strong>visual analytics</strong> in the home section showing:
-                        </div>
-                        <ul style="margin: 8px 0; padding-left: 20px;">
-                            <li>🔥 Trending job roles with demand percentages</li>
-                            <li>📈 In-demand skills with circular progress charts</li>
-                            <li>💰 Salary insights and growth projections</li>
-                        </ul>
-                        <div style="margin-top: 8px; font-size: 0.8rem; opacity: 0.8;">
-                            Scroll up to see the interactive trend cards above!
-                        </div>
-                    `;
-                } else if (hasProfileKeywords) {
-                    response = `
-                        <div>Profile optimization is crucial! ⚙️</div>
-                        <div style="margin-top: 8px;">
-                            <strong>To get better recommendations:</strong>
-                        </div>
-                        <ul style="margin: 8px 0; padding-left: 20px;">
-                            <li>Add your current skills with proficiency ratings (1-5)</li>
-                            <li>Specify your career interests and goals</li>
-                            <li>Update your experience level and background</li>
-                        </ul>
-                        <div style="margin-top: 8px; font-size: 0.8rem; opacity: 0.8;">
-                            Go to "Career Profile" section to update your information!
-                        </div>
-                    `;
-                } else {
-                    // More engaging fallback response
-                    response = `
-                        <div>I'm here to help with your career journey! 🌟</div>
-                        <div style="margin-top: 8px;">
-                            <strong>You can ask me about:</strong>
-                        </div>
-                        <ul style="margin: 8px 0; padding-left: 20px;">
-                            <li>💼 <strong>Jobs:</strong> "What jobs match my skills?" or "Show me opportunities"</li>
-                            <li>📚 <strong>Skills:</strong> "What skills should I learn?" or "How to improve?"</li>
-                            <li>🎓 <strong>Courses:</strong> "What courses are available?" or "Tell me about learning"</li>
-                            <li>📊 <strong>Trends:</strong> "What's trending?" or "Market insights"</li>
-                            <li>👤 <strong>Profile:</strong> "How to improve my profile?" or "Update tips"</li>
-                        </ul>
-                        <div style="margin-top: 8px; font-size: 0.8rem; opacity: 0.8;">
-                            What would you like to explore today?
-                        </div>
-                    `;
-                }
-
                 botDiv.innerHTML = `
                     <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
                         <i class="fas fa-robot" style="color: var(--primary);"></i>
                         <span style="font-weight: 600; color: var(--primary);">CareerBot</span>
                     </div>
-                    <div>${response}</div>
+                    <div class="bot-content">${formattedHtml}</div>
                 `;
 
                 messages.appendChild(botDiv);
                 messages.scrollTop = messages.scrollHeight;
-            }, 1500 + Math.random() * 1000); // Random delay for more natural feel
+
+            } catch (err) {
+                console.error("Chatbot error:", err);
+                const typingIndicator = document.getElementById('typingIndicator');
+                if (typingIndicator) typingIndicator.remove();
+
+                const errDiv = document.createElement('div');
+                errDiv.className = 'chatbot-message bot';
+                errDiv.innerHTML = `
+                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+                        <i class="fas fa-circle-exclamation" style="color: #ef4444;"></i>
+                        <span style="font-weight: 600; color: #ef4444;">Error</span>
+                    </div>
+                    <div>Could not connect to the AI assistant server. Please check your connection and try again.</div>
+                `;
+                messages.appendChild(errDiv);
+                messages.scrollTop = messages.scrollHeight;
+            }
         }
+
+        // Simple markdown formatter for chatbot messages
+        function formatChatbotMarkdown(text) {
+            if (!text) return '';
+            let html = text;
+
+            // Fenced code blocks ```lang ... ```
+            html = html.replace(/```(?:[a-zA-Z0-9]+)?\n([\s\S]*?)```/g, function(match, code) {
+                return '<pre><code>' + escapeHtml(code.trim()) + '</code></pre>';
+            });
+
+            // Inline code `...`
+            html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
+
+            // Bold **...**
+            html = html.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+
+            // Italic *...*
+            html = html.replace(/\*([^*]+)\*/g, '<em>$1</em>');
+
+            // Convert bullet points
+            const lines = html.split('\n');
+            let inList = false;
+            let resultLines = [];
+
+            for (let line of lines) {
+                const trimmed = line.trim();
+                if (trimmed.startsWith('• ') || trimmed.startsWith('- ')) {
+                    if (!inList) {
+                        resultLines.push('<ul>');
+                        inList = true;
+                    }
+                    resultLines.push('<li>' + trimmed.substring(2) + '</li>');
+                } else if (/^\d+\.\s/.test(trimmed)) {
+                    if (!inList) {
+                        resultLines.push('<ol>');
+                        inList = true;
+                    }
+                    resultLines.push('<li>' + trimmed.replace(/^\d+\.\s/, '') + '</li>');
+                } else {
+                    if (inList) {
+                        resultLines.push('</ul>');
+                        inList = false;
+                    }
+                    if (trimmed) {
+                        resultLines.push('<p style="margin: 4px 0 6px 0;">' + trimmed + '</p>');
+                    }
+                }
+            }
+            if (inList) resultLines.push('</ul>');
+
+            return resultLines.join('');
+        }
+
+        // ==========================================
+        // CAREER ROLE FILTERING & RECOMMENDATIONS
+        // ==========================================
+        let currentCareerRole = 'all';
+
+        async function filterCareerRoles(role, tabBtn) {
+            currentCareerRole = role;
+
+            // Update Tab UI
+            document.querySelectorAll('.role-track-tab').forEach(b => b.classList.remove('active'));
+            if (tabBtn) tabBtn.classList.add('active');
+
+            const grid = document.getElementById('jobsGridContainer');
+            const emptyState = document.getElementById('jobsEmptyState');
+            if (!grid) return;
+
+            // Loading state
+            grid.style.opacity = '0.5';
+
+            try {
+                const response = await fetch(`/get_career_recommendations?role=${encodeURIComponent(role)}`);
+                const data = await response.json();
+
+                grid.style.opacity = '1';
+
+                if (!data.success || !data.jobs || data.jobs.length === 0) {
+                    grid.innerHTML = '';
+                    if (emptyState) {
+                        document.getElementById('jobsEmptyTitle').textContent = `No Active Openings in this Track (${role})`;
+                        document.getElementById('jobsEmptyMsg').textContent = `We don't currently have active listings for this role, but your skills align with several related career tracks!`;
+
+                        const suggestionsDiv = document.getElementById('jobsEmptySuggestions');
+                        if (suggestionsDiv && data.related_tracks && data.related_tracks.length > 0) {
+                            suggestionsDiv.innerHTML = data.related_tracks.map(t => `
+                                <button type="button" class="btn btn-sm btn-outline" onclick="selectRoleTrack('${t.track}')" style="background: rgba(37,99,235,0.15); color: var(--accent); border: 1px solid rgba(96,165,250,0.3); padding: 6px 14px; border-radius: 8px; cursor: pointer;">
+                                    ${escapeHtml(t.label)} (${t.top_match}% Match)
+                                </button>
+                            `).join('');
+                        }
+                        emptyState.style.display = 'block';
+                    }
+                    return;
+                }
+
+                if (emptyState) emptyState.style.display = 'none';
+
+                // Render dynamic job cards
+                grid.innerHTML = data.jobs.map(job => renderSingleJobCard(job)).join('');
+
+            } catch (err) {
+                console.error("Error filtering jobs:", err);
+                grid.style.opacity = '1';
+            }
+        }
+
+        function selectRoleTrack(roleKey) {
+            const btn = document.querySelector(`.role-track-tab[data-role="${roleKey}"]`);
+            if (btn) {
+                filterCareerRoles(roleKey, btn);
+            }
+        }
+
+        function renderSingleJobCard(job) {
+            const safeTitle = escapeHtml(job.title).replace(/'/g, "\\'");
+            const safeCompany = escapeHtml(job.company).replace(/'/g, "\\'");
+
+            return `
+                <div class="job-card" id="job_card_${job.id}">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+                        <span class="match-badge" style="position: static; display: inline-block;">${job.match_score}% Match</span>
+                        ${job.applied ? `
+                            <span class="badge-applied" id="badge_applied_${job.id}" style="background: rgba(34, 197, 94, 0.2); color: #86efac; border: 1px solid rgba(34, 197, 94, 0.4); padding: 3px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: 600;">
+                                <i class="fas fa-check-circle"></i> Applied
+                            </span>
+                        ` : ''}
+                    </div>
+                    <h4 style="margin: 6px 0 4px 0; color: var(--text-light); font-size: 1.05rem;">${escapeHtml(job.title)}</h4>
+                    <p style="color: var(--accent); font-weight: 500; font-size: 0.88rem; margin-bottom: 8px;">🏢 ${escapeHtml(job.company)}</p>
+                    <p style="font-size: 0.84rem; color: #cbd5e1; line-height: 1.4; margin-bottom: 12px;">${escapeHtml(job.description.substring(0, 130))}${job.description.length > 130 ? '...' : ''}</p>
+
+                    <!-- Skill Compatibility Analysis -->
+                    <div class="skill-analysis" style="margin: 12px 0; padding: 10px 12px; background: rgba(15, 23, 42, 0.6); border-radius: 8px; border-left: 3px solid var(--accent);">
+                        <div style="font-size: 0.72rem; font-weight: 700; color: var(--accent); margin-bottom: 6px; letter-spacing: 0.5px;">SKILL COMPATIBILITY</div>
+                        ${job.matched_skills && job.matched_skills.length > 0 ? `
+                            <div style="margin-bottom: 5px; display: flex; flex-wrap: wrap; gap: 4px;">
+                                ${job.matched_skills.slice(0, 4).map(ms => `
+                                    <span style="background: rgba(34, 197, 94, 0.15); color: #86efac; border: 1px solid rgba(34,197,94,0.3); font-size: 0.72rem; padding: 1px 6px; border-radius: 4px;">✓ ${escapeHtml(ms)}</span>
+                                `).join('')}
+                            </div>
+                        ` : ''}
+                        ${job.missing_skills && job.missing_skills.length > 0 ? `
+                            <div style="display: flex; flex-wrap: wrap; gap: 4px;">
+                                ${job.missing_skills.slice(0, 3).map(us => `
+                                    <span style="background: rgba(245, 158, 11, 0.15); color: #fde047; border: 1px solid rgba(245,158,11,0.3); font-size: 0.72rem; padding: 1px 6px; border-radius: 4px;">+ ${escapeHtml(us)}</span>
+                                `).join('')}
+                            </div>
+                        ` : ''}
+                        <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 6px; line-height: 1.3;">
+                            ${escapeHtml(job.match_reason)}
+                        </div>
+                    </div>
+
+                    <!-- Application Action Button -->
+                    <div style="margin-top: 14px; display: flex; gap: 8px;">
+                        ${job.applied ? `
+                            <button type="button" class="btn btn-secondary" disabled style="width: 100%; justify-content: center; background: rgba(34, 197, 94, 0.15); border: 1px solid rgba(34, 197, 94, 0.4); color: #86efac; font-size: 0.82rem; cursor: default;">
+                                <i class="fas fa-check-double"></i> Applied on ${escapeHtml((job.applied_at || 'Portal').substring(0, 10))}
+                            </button>
+                        ` : `
+                            <button type="button" id="btn_apply_job_${job.id}" onclick="openApplyJobModal('${job.id}', '${safeTitle}', '${safeCompany}')" class="btn btn-primary" style="flex: 1; justify-content: center; font-size: 0.84rem;">
+                                <i class="fas fa-paper-plane"></i> Apply Now
+                            </button>
+                            ${job.is_external ? `
+                                <a href="${escapeHtml(job.application_link)}" target="_blank" rel="noopener noreferrer" class="btn btn-outline" style="border: 1px solid rgba(255,255,255,0.2); color: var(--accent); padding: 8px 12px; font-size: 0.82rem; text-decoration: none; border-radius: 8px; display: inline-flex; align-items: center;" title="View official external posting">
+                                    <i class="fas fa-arrow-up-right-from-square"></i>
+                                </a>
+                            ` : ''}
+                        `}
+                    </div>
+                </div>
+            `;
+        }
+
+        // ==========================================
+        // APPLY JOB MODAL & SUBMISSION
+        // ==========================================
+        function openApplyJobModal(jobId, jobTitle, company) {
+            const modal = document.getElementById('applyJobModal');
+            if (!modal) return;
+
+            document.getElementById('applyModalJobId').value = jobId;
+            document.getElementById('applyModalTitle').textContent = `Apply for ${jobTitle}`;
+            document.getElementById('applyModalCompany').textContent = company;
+            document.getElementById('applyModalCoverNote').value = '';
+
+            const alertBox = document.getElementById('applyModalAlert');
+            if (alertBox) alertBox.style.display = 'none';
+
+            const submitBtn = document.getElementById('btnSubmitApplication');
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = `<i class="fas fa-check"></i> <span>Submit Application</span>`;
+            }
+
+            modal.style.display = 'flex';
+        }
+
+        function closeApplyJobModal() {
+            const modal = document.getElementById('applyJobModal');
+            if (modal) modal.style.display = 'none';
+        }
+
+        async function submitJobApplication(event) {
+            event.preventDefault();
+
+            const jobId = document.getElementById('applyModalJobId').value;
+            const coverNote = document.getElementById('applyModalCoverNote').value;
+            const alertBox = document.getElementById('applyModalAlert');
+            const submitBtn = document.getElementById('btnSubmitApplication');
+
+            if (!jobId) return;
+
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Submitting...`;
+
+            try {
+                const response = await fetch('/apply_job', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        job_id: jobId,
+                        cover_note: coverNote
+                    })
+                });
+
+                const result = await response.json();
+
+                if (response.ok && result.success) {
+                    alertBox.className = 'alert alert-success';
+                    alertBox.style.background = 'rgba(34, 197, 94, 0.2)';
+                    alertBox.style.border = '1px solid rgba(34, 197, 94, 0.4)';
+                    alertBox.style.color = '#86efac';
+                    alertBox.innerHTML = `<i class="fas fa-check-circle"></i> ${escapeHtml(result.message)}`;
+                    alertBox.style.display = 'block';
+
+                    // Update button on job card
+                    const cardBtn = document.getElementById(`btn_apply_job_${jobId}`);
+                    if (cardBtn) {
+                        cardBtn.className = 'btn btn-secondary';
+                        cardBtn.disabled = true;
+                        cardBtn.style.background = 'rgba(34, 197, 94, 0.15)';
+                        cardBtn.style.borderColor = 'rgba(34, 197, 94, 0.4)';
+                        cardBtn.style.color = '#86efac';
+                        cardBtn.style.cursor = 'default';
+                        cardBtn.innerHTML = `<i class="fas fa-check-double"></i> Applied Today`;
+                    }
+
+                    // Add applied badge to card if not present
+                    const jobCard = document.getElementById(`job_card_${jobId}`);
+                    if (jobCard && !document.getElementById(`badge_applied_${jobId}`)) {
+                        const topBar = jobCard.querySelector('div');
+                        if (topBar) {
+                            const badge = document.createElement('span');
+                            badge.id = `badge_applied_${jobId}`;
+                            badge.className = 'badge-applied';
+                            badge.style.background = 'rgba(34, 197, 94, 0.2)';
+                            badge.style.color = '#86efac';
+                            badge.style.border = '1px solid rgba(34, 197, 94, 0.4)';
+                            badge.style.padding = '3px 8px';
+                            badge.style.borderRadius = '12px';
+                            badge.style.fontSize = '0.75rem';
+                            badge.style.fontWeight = '600';
+                            badge.innerHTML = `<i class="fas fa-check-circle"></i> Applied`;
+                            topBar.appendChild(badge);
+                        }
+                    }
+
+                    setTimeout(() => {
+                        closeApplyJobModal();
+                    }, 1200);
+
+                } else if (result.already_applied) {
+                    alertBox.className = 'alert alert-info';
+                    alertBox.style.background = 'rgba(59, 130, 246, 0.2)';
+                    alertBox.style.border = '1px solid rgba(59, 130, 246, 0.4)';
+                    alertBox.style.color = '#93c5fd';
+                    alertBox.innerHTML = `<i class="fas fa-circle-info"></i> ${escapeHtml(result.message)}`;
+                    alertBox.style.display = 'block';
+                    submitBtn.disabled = true;
+                    submitBtn.textContent = 'Already Applied';
+                } else {
+                    alertBox.className = 'alert alert-danger';
+                    alertBox.style.background = 'rgba(239, 68, 68, 0.2)';
+                    alertBox.style.border = '1px solid rgba(239, 68, 68, 0.4)';
+                    alertBox.style.color = '#fca5a5';
+                    alertBox.innerHTML = `<i class="fas fa-exclamation-circle"></i> ${escapeHtml(result.error || 'Failed to submit application.')}`;
+                    alertBox.style.display = 'block';
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = `<i class="fas fa-check"></i> Try Again`;
+                }
+
+            } catch (err) {
+                console.error("Application error:", err);
+                alertBox.className = 'alert alert-danger';
+                alertBox.style.background = 'rgba(239, 68, 68, 0.2)';
+                alertBox.style.color = '#fca5a5';
+                alertBox.innerHTML = `<i class="fas fa-wifi"></i> Network error connecting to server. Please try again.`;
+                alertBox.style.display = 'block';
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = `<i class="fas fa-check"></i> Submit Application`;
+            }
+        }
+
+        // Close modal on click outside
+        document.addEventListener('click', function(event) {
+            const modal = document.getElementById('applyJobModal');
+            if (modal && event.target === modal) {
+                closeApplyJobModal();
+            }
+        });
 
         // Close chatbot when clicking outside
         document.addEventListener('click', function(event) {
             const modal = document.getElementById('chatbotModal');
             const icon = document.querySelector('.chatbot-icon');
 
-            if (!modal.contains(event.target) && !icon.contains(event.target) && modal.style.display === 'flex') {
+            if (modal && icon && !modal.contains(event.target) && !icon.contains(event.target) && modal.style.display === 'flex') {
                 toggleChatbot();
             }
         });
 
         // Send message on Enter key
-        document.getElementById('chatbotInput').addEventListener('keypress', function(event) {
-            if (event.key === 'Enter') {
-                sendChatbotMessage();
-            }
-        });
+        const chatInp = document.getElementById('chatbotInput');
+        if (chatInp) {
+            chatInp.addEventListener('keydown', function(event) {
+                if (event.key === 'Enter') {
+                    event.preventDefault();
+                    sendChatbotMessage();
+                }
+            });
+        }
 
         // Form validation - prevent browser validation messages
         document.addEventListener('DOMContentLoaded', function() {
@@ -3965,9 +4580,1222 @@
             }
         });
 
+        // ==========================================
+        // AI RESUME ANALYZER & PROFILE AUTO-FILL HANDLER
+        // ==========================================
+        let currentAnalysisData = {{ latest_resume_analysis|tojson|safe if latest_resume_analysis else 'null' }};
+        let currentActiveFilter = 'all';
+
+        function handleResumeFileSelected(input) {
+            const label = document.getElementById('resumeFileLabel');
+            const replaceBtn = document.getElementById('btnReplaceResume');
+            const statusAlert = document.getElementById('resumeStatusAlert');
+            const parsedSummary = document.getElementById('resumeParsedSummary');
+            const activeBar = document.getElementById('activeFileInfoBar');
+            const activeFilename = document.getElementById('activeResumeFilename');
+
+            if (statusAlert) statusAlert.style.display = 'none';
+            if (parsedSummary) parsedSummary.style.display = 'none';
+
+            if (input.files && input.files.length > 0) {
+                const file = input.files[0];
+                const ext = file.name.split('.').pop().toLowerCase();
+
+                if (!['pdf', 'docx'].includes(ext)) {
+                    showResumeAlert(`Unsupported file format (.${ext}). Only PDF and DOCX files are allowed.`, 'danger');
+                    input.value = '';
+                    if (label) label.textContent = 'Click or Drag & Drop Resume (.pdf, .docx)';
+                    if (replaceBtn) replaceBtn.style.display = 'none';
+                    if (activeBar) activeBar.style.display = 'none';
+                    return;
+                }
+
+                if (file.size > 10 * 1024 * 1024) {
+                    showResumeAlert(`File is too large (${(file.size / (1024 * 1024)).toFixed(1)}MB). Maximum allowed size is 10MB.`, 'danger');
+                    input.value = '';
+                    if (label) label.textContent = 'Click or Drag & Drop Resume (.pdf, .docx)';
+                    if (replaceBtn) replaceBtn.style.display = 'none';
+                    if (activeBar) activeBar.style.display = 'none';
+                    return;
+                }
+
+                if (label) {
+                    label.innerHTML = `<strong>Selected:</strong> ${escapeHtml(file.name)} <span style="opacity: 0.8;">(${(file.size / 1024).toFixed(1)} KB)</span>`;
+                }
+                if (replaceBtn) replaceBtn.style.display = 'inline-flex';
+                if (activeBar && activeFilename) {
+                    activeFilename.textContent = file.name;
+                    activeBar.style.display = 'flex';
+                }
+            } else {
+                if (label) label.textContent = 'Click or Drag & Drop Resume (.pdf, .docx)';
+                if (replaceBtn) replaceBtn.style.display = 'none';
+            }
+        }
+
+        function resetResumeUpload() {
+            const input = document.getElementById('resumeFileInput');
+            if (input) input.value = '';
+            const label = document.getElementById('resumeFileLabel');
+            if (label) label.textContent = 'Click or Drag & Drop Resume (.pdf, .docx)';
+            const replaceBtn = document.getElementById('btnReplaceResume');
+            if (replaceBtn) replaceBtn.style.display = 'none';
+            const statusAlert = document.getElementById('resumeStatusAlert');
+            if (statusAlert) statusAlert.style.display = 'none';
+            const parsedSummary = document.getElementById('resumeParsedSummary');
+            if (parsedSummary) parsedSummary.style.display = 'none';
+            const activeBar = document.getElementById('activeFileInfoBar');
+            if (activeBar) activeBar.style.display = 'none';
+        }
+
+        function showResumeAlert(message, type) {
+            const alertBox = document.getElementById('resumeStatusAlert');
+            if (!alertBox) return;
+            alertBox.className = 'resume-status-alert alert-' + type;
+            alertBox.style.display = 'flex';
+            let icon = 'info-circle';
+            if (type === 'danger') icon = 'exclamation-circle';
+            else if (type === 'success') icon = 'check-circle';
+            alertBox.innerHTML = `<i class="fas fa-${icon}" style="font-size: 1.15rem; flex-shrink: 0;"></i> <div>${message}</div>`;
+        }
+
+        async function uploadAndParseResume() {
+            const fileInput = document.getElementById('resumeFileInput');
+            if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
+                showResumeAlert('Please choose a resume file (.pdf or .docx) to analyze.', 'danger');
+                return;
+            }
+
+            const file = fileInput.files[0];
+            const btn = document.getElementById('btnUploadResume');
+            const originalBtnHtml = btn.innerHTML;
+
+            // Loading state
+            btn.disabled = true;
+            btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> <span>Analyzing Resume...</span>`;
+            showResumeAlert('Extracting resume content, scoring ATS compatibility, and generating AI improvement suggestions...', 'info');
+
+            const formData = new FormData();
+            formData.append('resume', file);
+
+            try {
+                const response = await fetch('/parse_resume', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (!response.ok || !result.success) {
+                    const errorMsg = result.error || 'Failed to extract information from resume. Please check the file.';
+                    showResumeAlert(errorMsg, 'danger');
+                    return;
+                }
+
+                const data = result.data || {};
+                let filledCount = 0;
+                const summaryPills = [];
+
+                function fillField(elemId, value, label) {
+                    if (value !== undefined && value !== null && String(value).trim() !== '') {
+                        const elem = document.getElementById(elemId);
+                        if (elem) {
+                            elem.value = value;
+                            elem.classList.remove('field-highlight-pulse');
+                            void elem.offsetWidth; // trigger reflow
+                            elem.classList.add('field-highlight-pulse');
+                            filledCount++;
+                            if (label) {
+                                summaryPills.push(`<strong>${label}:</strong> ${escapeHtml(String(value).substring(0, 35))}`);
+                            }
+                        }
+                    }
+                }
+
+                // Auto-fill available details without overwriting existing data with empty strings
+                fillField('prof_full_name', data.full_name, 'Name');
+                fillField('prof_register_number', data.register_number, 'Reg No');
+                fillField('prof_college_name', data.college_name, 'College');
+                fillField('prof_batch_year', data.batch_year, 'Batch Year');
+
+                if (data.current_semester) {
+                    const semSelect = document.getElementById('prof_current_semester');
+                    if (semSelect) {
+                        semSelect.value = String(data.current_semester);
+                        semSelect.classList.remove('field-highlight-pulse');
+                        void semSelect.offsetWidth;
+                        semSelect.classList.add('field-highlight-pulse');
+                        filledCount++;
+                        summaryPills.push(`<strong>Semester:</strong> Sem ${data.current_semester}`);
+                    }
+                }
+
+                fillField('prof_location', data.location, 'Location');
+                fillField('prof_skills', data.skills, 'Skills');
+                fillField('prof_skill_ratings', data.skill_ratings, null);
+                fillField('prof_interests', data.interests, 'Interests');
+                fillField('prof_tech_stack', data.tech_stack, 'Tech Stack');
+                fillField('prof_experience', data.experience, null);
+
+                // Add contact info chips to overview summary
+                if (data.email) {
+                    summaryPills.unshift(`<strong>Email:</strong> ${escapeHtml(data.email)}`);
+                }
+                if (data.phone) {
+                    summaryPills.unshift(`<strong>Phone:</strong> ${escapeHtml(data.phone)}`);
+                }
+                if (data.skills_count) {
+                    summaryPills.push(`<strong>Skills Detected:</strong> ${data.skills_count}`);
+                }
+
+                const summaryCard = document.getElementById('resumeParsedSummary');
+                const summaryPillsContainer = document.getElementById('resumeSummaryPills');
+                if (summaryCard && summaryPillsContainer && summaryPills.length > 0) {
+                    summaryPillsContainer.innerHTML = summaryPills.map(p => `
+                        <span class="summary-pill">${p}</span>
+                    `).join('');
+                    summaryCard.style.display = 'block';
+                }
+
+                // Render AI Analysis Dashboard
+                if (result.analysis) {
+                    currentAnalysisData = result.analysis;
+                    renderAnalysisDashboard(result.analysis);
+                }
+
+                // Show active resume info
+                const activeBar = document.getElementById('activeFileInfoBar');
+                const activeFilename = document.getElementById('activeResumeFilename');
+                if (activeBar && activeFilename) {
+                    activeFilename.textContent = result.filename || file.name;
+                    activeBar.style.display = 'flex';
+                }
+
+                showResumeAlert(`✓ Resume successfully extracted and analyzed! Auto-filled <strong>${filledCount}</strong> field(s). Review your scores and recommendations below.`, 'success');
+
+                // Smooth scroll to score dashboard
+                const dashboard = document.getElementById('resumeScoreDashboard');
+                if (dashboard) {
+                    dashboard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+
+            } catch (err) {
+                console.error('Resume upload error:', err);
+                showResumeAlert('Network error or server unavailable. Please try again.', 'danger');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalBtnHtml;
+            }
+        }
+
+        // Render Score Dashboard and Recommendations
+        function renderAnalysisDashboard(analysis) {
+            if (!analysis) return;
+
+            const dashboard = document.getElementById('resumeScoreDashboard');
+            if (!dashboard) return;
+
+            // Overall Score
+            const overallScoreElem = document.getElementById('dashOverallScore');
+            const overallBadgeElem = document.getElementById('dashOverallBadge');
+            if (overallScoreElem) overallScoreElem.textContent = analysis.overall_score || 0;
+            if (overallBadgeElem) {
+                overallBadgeElem.textContent = analysis.overall_status || 'Good';
+                overallBadgeElem.className = 'score-status-badge ' + (analysis.overall_score >= 80 ? 'status-strong' : (analysis.overall_score >= 60 ? 'status-good' : 'status-low'));
+            }
+
+            // Engine Mode & Disclaimer
+            const engineNameElem = document.getElementById('aiEngineName');
+            if (engineNameElem && analysis.engine_mode) {
+                engineNameElem.textContent = analysis.engine_mode;
+            }
+            const disclaimerElem = document.getElementById('dashDisclaimerText');
+            if (disclaimerElem && analysis.disclaimer) {
+                disclaimerElem.textContent = analysis.disclaimer;
+            }
+
+            // 5 Category Metric Cards
+            const cats = analysis.category_scores || {};
+            const catMap = {
+                'grammar': 'grammar',
+                'skills': 'skills',
+                'formatting': 'formatting',
+                'ats': 'ats',
+                'completeness': 'completeness'
+            };
+
+            for (const [key, catKey] of Object.entries(catMap)) {
+                const catData = cats[catKey];
+                if (catData) {
+                    const scoreBadge = document.getElementById(`score_cat_${key}`);
+                    const progressFill = document.getElementById(`fill_cat_${key}`);
+                    const reasonElem = document.getElementById(`reason_cat_${key}`);
+
+                    if (scoreBadge) scoreBadge.textContent = `${catData.score}/100`;
+                    if (progressFill) {
+                        progressFill.style.width = `${catData.score}%`;
+                        progressFill.style.backgroundColor = catData.color || '#3b82f6';
+                    }
+                    if (reasonElem && catData.reason) reasonElem.textContent = catData.reason;
+                }
+            }
+
+            // Top Highlights Banner
+            const topBanner = document.getElementById('dashTopHighlights');
+            const topList = document.getElementById('dashTopHighlightsList');
+            if (topBanner && topList && analysis.top_improvements && analysis.top_improvements.length > 0) {
+                topList.innerHTML = analysis.top_improvements.map((t, i) => `
+                    <div style="display: flex; gap: 8px; align-items: flex-start;">
+                        <span style="background: rgba(245, 158, 11, 0.2); color: #f59e0b; padding: 1px 6px; border-radius: 4px; font-weight: 600; font-size: 0.75rem;">Fix ${i+1}</span>
+                        <span><strong>${escapeHtml(t.title)}:</strong> ${escapeHtml(t.recommendation)}</span>
+                    </div>
+                `).join('');
+                topBanner.style.display = 'block';
+            }
+
+            // Update Tab Issue Counts
+            const issues = analysis.issues || [];
+            document.getElementById('count_all').textContent = issues.length;
+            document.getElementById('count_high').textContent = issues.filter(i => i.priority === 'High').length;
+            document.getElementById('count_grammar').textContent = issues.filter(i => i.category === 'Grammar & Language').length;
+            document.getElementById('count_projects').textContent = issues.filter(i => i.category === 'Projects & Experience').length;
+            document.getElementById('count_skills').textContent = issues.filter(i => i.category === 'Skills & Relevance').length;
+            document.getElementById('count_ats').textContent = issues.filter(i => i.category === 'ATS & Formatting').length;
+
+            // Render Issues List
+            renderIssuesList(issues);
+
+            dashboard.style.display = 'block';
+        }
+
+        // Render Issues Cards with Filters
+        function renderIssuesList(issues) {
+            const listContainer = document.getElementById('resumeIssuesList');
+            if (!listContainer) return;
+
+            let filtered = issues;
+            if (currentActiveFilter === 'High') {
+                filtered = issues.filter(i => i.priority === 'High');
+            } else if (currentActiveFilter !== 'all') {
+                filtered = issues.filter(i => i.category === currentActiveFilter);
+            }
+
+            if (filtered.length === 0) {
+                listContainer.innerHTML = `
+                    <div style="text-align: center; padding: 30px; color: var(--text-muted);">
+                        <i class="fas fa-check-double" style="font-size: 2rem; color: var(--success); margin-bottom: 10px;"></i>
+                        <p style="font-size: 0.95rem; margin: 0;">No issues found in this category! Great job maintaining high resume standards.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            listContainer.innerHTML = filtered.map(issue => {
+                const prioColor = issue.priority === 'High' ? '#ef4444' : (issue.priority === 'Medium' ? '#f59e0b' : '#3b82f6');
+                const prioBg = issue.priority === 'High' ? 'rgba(239, 68, 68, 0.15)' : (issue.priority === 'Medium' ? 'rgba(245, 158, 11, 0.15)' : 'rgba(59, 130, 246, 0.15)');
+
+                return `
+                    <div class="issue-card" style="border-left: 4px solid ${prioColor};">
+                        <div class="issue-card-top">
+                            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                                <span class="issue-prio-badge" style="background: ${prioBg}; color: ${prioColor}; border: 1px solid ${prioColor}40;">
+                                    ${escapeHtml(issue.priority)} Priority
+                                </span>
+                                <span class="issue-cat-badge">
+                                    ${escapeHtml(issue.category)}
+                                </span>
+                            </div>
+                            <h4 class="issue-title">${escapeHtml(issue.title)}</h4>
+                        </div>
+
+                        <!-- Current Text / Problem -->
+                        <div class="issue-detail-row">
+                            <span class="detail-label"><i class="fas fa-circle-exclamation" style="color: ${prioColor};"></i> Identified Issue:</span>
+                            <div class="issue-snippet-box">${escapeHtml(issue.current_text)}</div>
+                        </div>
+
+                        <!-- Why Improve -->
+                        <div class="issue-detail-row">
+                            <span class="detail-label"><i class="fas fa-bullseye" style="color: var(--accent);"></i> Why It Matters:</span>
+                            <p class="issue-reason-text">${escapeHtml(issue.why_improve)}</p>
+                        </div>
+
+                        <!-- Recommendation & Suggested Text -->
+                        <div class="issue-detail-row">
+                            <span class="detail-label"><i class="fas fa-wand-magic-sparkles" style="color: var(--success);"></i> Suggested Correction:</span>
+                            <p style="font-size: 0.85rem; color: #cbd5e1; margin: 2px 0 6px 0;">${escapeHtml(issue.recommendation)}</p>
+                            ${issue.suggested_text && issue.suggested_text !== 'Remove this item' ? `
+                                <div class="issue-suggestion-box">
+                                    <div style="font-size: 0.75rem; color: #86efac; font-weight: 600; margin-bottom: 4px;">Recommended Text:</div>
+                                    <div id="suggest_${issue.id}">${escapeHtml(issue.suggested_text)}</div>
+                                </div>
+                            ` : ''}
+                        </div>
+
+                        <!-- Action Button -->
+                        <div class="issue-action-footer">
+                            <button type="button" class="btn-apply-suggestion" id="btn_apply_${issue.id}" onclick="applySuggestion('${issue.id}', '${issue.target_field || 'experience'}')">
+                                <i class="fas fa-check"></i> <span>Apply Suggestion</span>
+                            </button>
+                            <span style="font-size: 0.78rem; color: var(--text-muted);">Applies to: <code>${escapeHtml(issue.target_field || 'Profile')}</code></span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function filterIssues(filter, tabBtn) {
+            currentActiveFilter = filter;
+            document.querySelectorAll('.issue-tab').forEach(t => t.classList.remove('active'));
+            if (tabBtn) tabBtn.classList.add('active');
+            if (currentAnalysisData && currentAnalysisData.issues) {
+                renderIssuesList(currentAnalysisData.issues);
+            }
+        }
+
+        // Apply Suggestion selectively to the Career Profile Form
+        function applySuggestion(issueId, targetField) {
+            const suggestElem = document.getElementById(`suggest_${issueId}`);
+            const btn = document.getElementById(`btn_apply_${issueId}`);
+            
+            let textToApply = "";
+            if (suggestElem) {
+                textToApply = suggestElem.textContent.trim();
+            }
+
+            let fieldElem = null;
+            if (targetField === 'experience') {
+                fieldElem = document.getElementById('prof_experience');
+                if (fieldElem) {
+                    if (fieldElem.value.trim()) {
+                        fieldElem.value += "\n\n" + textToApply;
+                    } else {
+                        fieldElem.value = textToApply;
+                    }
+                }
+            } else if (targetField === 'skills') {
+                fieldElem = document.getElementById('prof_skills');
+                if (fieldElem) {
+                    if (fieldElem.value.trim()) {
+                        fieldElem.value += ", " + textToApply;
+                    } else {
+                        fieldElem.value = textToApply;
+                    }
+                }
+            } else if (targetField === 'tech_stack') {
+                fieldElem = document.getElementById('prof_tech_stack');
+                if (fieldElem) {
+                    fieldElem.value = fieldElem.value ? `${fieldElem.value}, ${textToApply}` : textToApply;
+                }
+            } else if (targetField === 'college_name') {
+                fieldElem = document.getElementById('prof_college_name');
+                if (fieldElem) fieldElem.value = textToApply;
+            }
+
+            if (fieldElem) {
+                fieldElem.classList.remove('field-highlight-pulse');
+                void fieldElem.offsetWidth;
+                fieldElem.classList.add('field-highlight-pulse');
+                fieldElem.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+
+            if (btn) {
+                btn.classList.add('applied');
+                btn.innerHTML = `<i class="fas fa-check-double"></i> <span>Applied to Form ✓</span>`;
+                btn.disabled = true;
+            }
+
+            showResumeAlert(`✓ Suggestion applied to ${targetField}! Review and edit the field below, then save or re-analyze.`, 'success');
+        }
+
+        // Re-analyze Current Form Fields
+        async function reanalyzeCurrentForm() {
+            showResumeAlert('Re-analyzing updated profile content...', 'info');
+
+            const payload = {
+                full_name: document.getElementById('prof_full_name')?.value || '',
+                register_number: document.getElementById('prof_register_number')?.value || '',
+                college_name: document.getElementById('prof_college_name')?.value || '',
+                batch_year: document.getElementById('prof_batch_year')?.value || '',
+                current_semester: document.getElementById('prof_current_semester')?.value || '',
+                location: document.getElementById('prof_location')?.value || '',
+                skills: document.getElementById('prof_skills')?.value || '',
+                skill_ratings: document.getElementById('prof_skill_ratings')?.value || '',
+                interests: document.getElementById('prof_interests')?.value || '',
+                tech_stack: document.getElementById('prof_tech_stack')?.value || '',
+                experience: document.getElementById('prof_experience')?.value || '',
+                filename: document.getElementById('activeResumeFilename')?.textContent || 'Current_Profile_Resume.pdf'
+            };
+
+            try {
+                const response = await fetch('/analyze_resume', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await response.json();
+                if (response.ok && result.success) {
+                    currentAnalysisData = result.analysis;
+                    renderAnalysisDashboard(result.analysis);
+                    showResumeAlert('✓ Resume re-analyzed! Updated scores and remaining suggestions are reflected above.', 'success');
+                } else {
+                    showResumeAlert(result.error || 'Failed to re-analyze resume.', 'danger');
+                }
+            } catch (err) {
+                console.error('Re-analysis error:', err);
+                showResumeAlert('Error connecting to server for re-analysis.', 'danger');
+            }
+        }
+
+        // Download Improved Resume PDF
+        function downloadImprovedResume() {
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '/download_improved_resume';
+            form.target = '_blank';
+
+            const fields = [
+                'prof_full_name', 'prof_register_number', 'prof_college_name',
+                'prof_batch_year', 'prof_current_semester', 'prof_location',
+                'prof_skills', 'prof_skill_ratings', 'prof_interests',
+                'prof_tech_stack', 'prof_experience'
+            ];
+
+            fields.forEach(fId => {
+                const elem = document.getElementById(fId);
+                if (elem) {
+                    const input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = elem.name;
+                    input.value = elem.value;
+                    form.appendChild(input);
+                }
+            });
+
+            document.body.appendChild(form);
+            form.submit();
+            document.body.removeChild(form);
+            showResumeAlert('Downloading improved ATS-compliant PDF resume...', 'info');
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Initialize drag and drop and previous analysis on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            const dropzone = document.getElementById('resumeDropZone');
+            const fileInput = document.getElementById('resumeFileInput');
+            if (dropzone && fileInput) {
+                ['dragenter', 'dragover'].forEach(eventName => {
+                    dropzone.addEventListener(eventName, (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        dropzone.classList.add('drag-active');
+                    }, false);
+                });
+
+                ['dragleave', 'drop'].forEach(eventName => {
+                    dropzone.addEventListener(eventName, (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        dropzone.classList.remove('drag-active');
+                    }, false);
+                });
+
+                dropzone.addEventListener('drop', (e) => {
+                    const dt = e.dataTransfer;
+                    const files = dt.files;
+                    if (files && files.length > 0) {
+                        fileInput.files = files;
+                        handleResumeFileSelected(fileInput);
+                    }
+                }, false);
+            }
+
+            // Check if there is initial analysis from server
+            if (currentAnalysisData) {
+                renderAnalysisDashboard(currentAnalysisData);
+                const activeBar = document.getElementById('activeFileInfoBar');
+                const activeFilename = document.getElementById('activeResumeFilename');
+                if (activeBar && activeFilename && currentAnalysisData.filename) {
+                    activeFilename.textContent = currentAnalysisData.filename;
+                    activeBar.style.display = 'flex';
+                }
+            }
+        });
+
     </script>
 
     <style>
+        /* Resume Upload and Auto-Fill Component Styles */
+        .resume-upload-card {
+            background: linear-gradient(135deg, rgba(37, 99, 235, 0.08), rgba(96, 165, 250, 0.03));
+            border: 1.5px dashed rgba(96, 165, 250, 0.4);
+            border-radius: 14px;
+            padding: 22px;
+            margin-bottom: 28px;
+            transition: all 0.3s ease;
+        }
+
+        .resume-upload-card:hover {
+            border-color: rgba(96, 165, 250, 0.7);
+            background: linear-gradient(135deg, rgba(37, 99, 235, 0.12), rgba(96, 165, 250, 0.05));
+        }
+
+        .resume-upload-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+
+        .resume-header-text h4 {
+            color: var(--accent);
+            font-size: 1.1rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 4px;
+        }
+
+        .resume-header-text p {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            line-height: 1.4;
+        }
+
+        .secure-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 5px 12px;
+            background: rgba(37, 99, 235, 0.15);
+            border: 1px solid rgba(96, 165, 250, 0.3);
+            border-radius: 20px;
+            font-size: 0.75rem;
+            color: var(--accent);
+            white-space: nowrap;
+        }
+
+        .resume-upload-controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .resume-dropzone {
+            flex: 1;
+            min-width: 260px;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 10px;
+            padding: 12px 18px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .resume-dropzone:hover, .resume-dropzone.drag-active {
+            background: rgba(15, 23, 42, 0.85);
+            border-color: var(--accent);
+            transform: translateY(-1px);
+        }
+
+        .dropzone-icon {
+            font-size: 1.6rem;
+            color: var(--accent);
+        }
+
+        .dropzone-text {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .dropzone-title {
+            font-size: 0.88rem;
+            font-weight: 500;
+            color: var(--text-light);
+            display: block;
+        }
+
+        .dropzone-subtitle {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .resume-action-buttons {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-clear-resume {
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            color: var(--text-muted);
+            border-radius: 8px;
+            padding: 12px 14px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-clear-resume:hover {
+            color: var(--danger);
+            border-color: var(--danger);
+        }
+
+        .resume-status-alert {
+            margin-top: 16px;
+            padding: 12px 16px;
+            border-radius: 10px;
+            font-size: 0.88rem;
+            line-height: 1.4;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .resume-status-alert.alert-danger {
+            background: rgba(239, 68, 68, 0.15);
+            border: 1px solid rgba(239, 68, 68, 0.4);
+            color: #fca5a5;
+        }
+
+        .resume-status-alert.alert-success {
+            background: rgba(34, 197, 94, 0.15);
+            border: 1px solid rgba(34, 197, 94, 0.4);
+            color: #86efac;
+        }
+
+        .resume-status-alert.alert-info {
+            background: rgba(59, 130, 246, 0.15);
+            border: 1px solid rgba(59, 130, 246, 0.4);
+            color: #93c5fd;
+        }
+
+        .resume-parsed-summary {
+            margin-top: 16px;
+            background: rgba(15, 23, 42, 0.75);
+            border: 1px solid rgba(34, 197, 94, 0.35);
+            border-radius: 10px;
+            padding: 14px 18px;
+        }
+
+        .summary-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .summary-title {
+            color: var(--success);
+            font-weight: 600;
+            font-size: 0.88rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .summary-note {
+            font-size: 0.78rem;
+            color: var(--text-muted);
+        }
+
+        .summary-pills {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            font-size: 0.8rem;
+        }
+
+        .summary-pill {
+            background: rgba(37, 99, 235, 0.2);
+            border: 1px solid rgba(96, 165, 250, 0.3);
+            border-radius: 6px;
+            padding: 4px 10px;
+            color: #e2e8f0;
+        }
+
+        @keyframes autoFillHighlight {
+            0% {
+                box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.8);
+                border-color: #3b82f6;
+            }
+            50% {
+                box-shadow: 0 0 14px 3px rgba(96, 165, 250, 0.8);
+                border-color: #60a5fa;
+            }
+            100% {
+                box-shadow: none;
+                border-color: rgba(255, 255, 255, 0.1);
+            }
+        }
+
+        .field-highlight-pulse {
+            animation: autoFillHighlight 2.5s ease-out;
+        }
+
+        /* AI Resume Score & Analysis Dashboard Styles */
+        .resume-score-dashboard {
+            background: rgba(15, 23, 42, 0.7);
+            border: 1px solid rgba(96, 165, 250, 0.25);
+            border-radius: 14px;
+            padding: 24px;
+            backdrop-filter: blur(12px);
+        }
+
+        .score-dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            margin-bottom: 20px;
+        }
+
+        .overall-score-panel {
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            flex: 1;
+            min-width: 280px;
+        }
+
+        .overall-score-circle {
+            width: 82px;
+            height: 82px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(37, 99, 235, 0.3) 0%, rgba(15, 23, 42, 0.9) 75%);
+            border: 3px solid var(--accent);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 20px rgba(96, 165, 250, 0.35);
+            flex-shrink: 0;
+        }
+
+        .score-number {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #ffffff;
+            line-height: 1;
+        }
+
+        .score-label {
+            font-size: 0.7rem;
+            color: var(--accent);
+            font-weight: 500;
+        }
+
+        .score-status-badge {
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .status-strong {
+            background: rgba(34, 197, 94, 0.2);
+            color: #86efac;
+            border: 1px solid rgba(34, 197, 94, 0.4);
+        }
+
+        .status-good {
+            background: rgba(59, 130, 246, 0.2);
+            color: #93c5fd;
+            border: 1px solid rgba(59, 130, 246, 0.4);
+        }
+
+        .status-low {
+            background: rgba(239, 68, 68, 0.2);
+            color: #fca5a5;
+            border: 1px solid rgba(239, 68, 68, 0.4);
+        }
+
+        .category-scores-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 14px;
+            margin-bottom: 20px;
+        }
+
+        .category-score-card {
+            background: rgba(30, 41, 59, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 10px;
+            padding: 14px;
+            transition: all 0.2s ease;
+        }
+
+        .category-score-card:hover {
+            border-color: rgba(96, 165, 250, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .cat-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .cat-name {
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: var(--text-light);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .cat-score-badge {
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: var(--accent);
+        }
+
+        .cat-progress-bar {
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            overflow: hidden;
+            margin-bottom: 8px;
+        }
+
+        .cat-progress-fill {
+            height: 100%;
+            border-radius: 3px;
+            transition: width 0.6s ease;
+        }
+
+        .cat-reason {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            line-height: 1.3;
+        }
+
+        .dash-top-highlights {
+            background: rgba(245, 158, 11, 0.1);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            border-radius: 10px;
+            padding: 14px 18px;
+            margin-bottom: 16px;
+        }
+
+        .dash-disclaimer {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            padding: 8px 12px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 6px;
+            margin-bottom: 24px;
+        }
+
+        .issues-explorer-section {
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            padding-top: 20px;
+        }
+
+        .issues-section-header {
+            margin-bottom: 15px;
+        }
+
+        .issues-filter-tabs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 18px;
+        }
+
+        .issue-tab {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-light);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.78rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .issue-tab:hover {
+            background: rgba(255, 255, 255, 0.12);
+        }
+
+        .issue-tab.active {
+            background: var(--primary);
+            border-color: var(--accent);
+            color: #ffffff;
+            font-weight: 600;
+        }
+
+        .tab-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .issues-list-container {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .issue-card {
+            background: rgba(30, 41, 59, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 10px;
+            padding: 16px;
+            transition: all 0.2s ease;
+        }
+
+        .issue-card:hover {
+            border-color: rgba(96, 165, 250, 0.3);
+            background: rgba(30, 41, 59, 0.9);
+        }
+
+        .issue-card-top {
+            margin-bottom: 10px;
+        }
+
+        .issue-prio-badge {
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.72rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .issue-cat-badge {
+            background: rgba(255, 255, 255, 0.07);
+            color: var(--text-muted);
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.72rem;
+        }
+
+        .issue-title {
+            color: var(--text-light);
+            font-size: 0.95rem;
+            margin: 6px 0 0 0;
+            font-weight: 600;
+        }
+
+        .issue-detail-row {
+            margin-bottom: 10px;
+        }
+
+        .detail-label {
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 4px;
+        }
+
+        .issue-snippet-box {
+            background: rgba(15, 23, 42, 0.8);
+            border-left: 3px solid rgba(255, 255, 255, 0.2);
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 0.82rem;
+            color: #fca5a5;
+            font-family: monospace;
+            word-break: break-word;
+        }
+
+        .issue-reason-text {
+            font-size: 0.82rem;
+            color: #cbd5e1;
+            margin: 0;
+            line-height: 1.4;
+        }
+
+        .issue-suggestion-box {
+            background: rgba(16, 185, 129, 0.08);
+            border: 1px dashed rgba(16, 185, 129, 0.35);
+            border-radius: 6px;
+            padding: 10px 14px;
+            font-size: 0.84rem;
+            color: #a7f3d0;
+            line-height: 1.4;
+        }
+
+        .issue-action-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 14px;
+            padding-top: 10px;
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .btn-apply-suggestion {
+            background: linear-gradient(135deg, #2563eb, #3b82f6);
+            color: white;
+            border: none;
+            padding: 7px 16px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s ease;
+        }
+
+        .btn-apply-suggestion:hover {
+            background: linear-gradient(135deg, #1d4ed8, #2563eb);
+            transform: translateY(-1px);
+        }
+
+        .btn-apply-suggestion.applied {
+            background: rgba(34, 197, 94, 0.2);
+            color: #86efac;
+            border: 1px solid rgba(34, 197, 94, 0.4);
+            cursor: default;
+            transform: none;
+        }
+
+        /* Career Role Track Tabs */
+        .role-track-tab {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-light);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .role-track-tab:hover {
+            background: rgba(255, 255, 255, 0.12);
+            border-color: rgba(96, 165, 250, 0.3);
+            transform: translateY(-1px);
+        }
+
+        .role-track-tab.active {
+            background: linear-gradient(135deg, #2563eb, #3b82f6);
+            border-color: #60a5fa;
+            color: #ffffff;
+            font-weight: 600;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35);
+        }
+
+        .role-count-pill {
+            background: rgba(0, 0, 0, 0.25);
+            padding: 2px 7px;
+            border-radius: 10px;
+            font-size: 0.72rem;
+            font-weight: 600;
+        }
+
+        .role-track-tab.active .role-count-pill {
+            background: rgba(255, 255, 255, 0.25);
+            color: #ffffff;
+        }
+
+        /* Chatbot Quick Buttons & Markdown Content */
+        .chat-quick-btn {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            color: #cbd5e1;
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 0.78rem;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            width: 100%;
+        }
+
+        .chat-quick-btn:hover {
+            background: rgba(37, 99, 235, 0.2);
+            border-color: rgba(96, 165, 250, 0.4);
+            color: #93c5fd;
+            transform: translateX(2px);
+        }
+
+        .bot-content {
+            font-size: 0.88rem;
+            line-height: 1.5;
+            color: #e2e8f0;
+        }
+
+        .bot-content pre {
+            background: rgba(15, 23, 42, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 6px;
+            padding: 10px 12px;
+            font-family: 'Consolas', 'Courier New', monospace;
+            font-size: 0.8rem;
+            color: #86efac;
+            overflow-x: auto;
+            margin: 8px 0;
+        }
+
+        .bot-content code {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 2px 5px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 0.82rem;
+            color: #93c5fd;
+        }
+
+        .bot-content ul, .bot-content ol {
+            margin: 6px 0;
+            padding-left: 20px;
+        }
+
+        .bot-content li {
+            margin-bottom: 4px;
+        }
+
+        /* Modal Backdrop & Card Animations */
+        @keyframes modalFadeIn {
+            from { opacity: 0; transform: scale(0.95) translateY(-10px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
         /* Video Section Responsive */
         @media (max-width: 768px) {
             .video-grid-horizontal {

@@ -4,14 +4,21 @@ import logging
 import io
 import secrets
 import string
+import json
 from datetime import datetime, timedelta
-from flask import Flask, render_template, request, redirect, url_for, session, flash, send_file
+from flask import Flask, render_template, request, redirect, url_for, session, flash, send_file, jsonify
+from werkzeug.utils import secure_filename
 import joblib
 from sklearn.metrics.pairwise import cosine_similarity
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 from flask_mail import Mail, Message
 from dotenv import load_dotenv
+from resume_parser import parse_resume
+from resume_analyzer import analyze_resume_content
+from resume_generator import generate_improved_resume_pdf
+from chatbot_service import process_chat_message
+from job_recommender import get_recommended_jobs_for_student, CAREER_TRACKS
 
 # Load environment variables
 load_dotenv()
@@ -25,7 +32,7 @@ DB_PATH = os.path.join(APP_DIR, "data.db")
 MODEL_PATH = os.path.join(APP_DIR, "models", "job_recommendation_type_knn.pkl")
 
 app = Flask(__name__)
-app.secret_key = "kkit_secret_key_123" # Use a stable secret key
+app.secret_key = os.getenv("SECRET_KEY", "kkit_secret_key_123")
 
 # Email Configuration
 app.config['MAIL_SERVER'] = os.getenv('MAIL_SERVER', 'smtp.gmail.com')
@@ -170,6 +177,63 @@ def init_db():
                 FOREIGN KEY (user_id) REFERENCES users(id)
             )
         """)
+
+        # Resume Analysis & Recommendations Table
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS resume_analysis (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL,
+                filename TEXT,
+                overall_score INTEGER,
+                grammar_score INTEGER,
+                skills_score INTEGER,
+                formatting_score INTEGER,
+                ats_score INTEGER,
+                completeness_score INTEGER,
+                analysis_json TEXT,
+                created_at TEXT,
+                FOREIGN KEY (user_id) REFERENCES users(id)
+            )
+        """)
+
+        # Job Applications Table
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS applications (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL,
+                job_id INTEGER NOT NULL,
+                student_name TEXT,
+                email TEXT,
+                phone TEXT,
+                resume_filename TEXT,
+                cover_note TEXT,
+                status TEXT DEFAULT 'Applied',
+                applied_at TEXT,
+                FOREIGN KEY (user_id) REFERENCES users(id),
+                FOREIGN KEY (job_id) REFERENCES jobs(id),
+                UNIQUE(user_id, job_id)
+            )
+        """)
+
+        # Auto-seed jobs from jobs.csv if table is empty
+        cur.execute("SELECT count(*) FROM jobs")
+        if cur.fetchone()[0] == 0:
+            jobs_csv_path = os.path.join(APP_DIR, "jobs.csv")
+            if os.path.exists(jobs_csv_path):
+                import csv
+                with open(jobs_csv_path, 'r', encoding='utf-8') as f:
+                    reader = csv.DictReader(f)
+                    for row in reader:
+                        title = row.get('title')
+                        company = row.get('company')
+                        desc = row.get('description')
+                        reqs = row.get('requirements', '').replace(';', ', ')
+                        posted = row.get('posted_at', datetime.now().strftime("%Y-%m-%d"))
+                        cur.execute("""
+                            INSERT INTO jobs (title, description, required_skills, posted_by, created_at) 
+                            VALUES (?, ?, ?, ?, ?)
+                        """, (title, desc, reqs, company, posted))
+                logger.info("Auto-seeded jobs from jobs.csv")
 
         conn.commit()
         conn.close()
@@ -516,16 +580,36 @@ def dashboard():
         return redirect(url_for("login"))
     
     user_id = session.get("user_id")
+    uid = user_id
     profile = db_fetchall("SELECT * FROM student_profile WHERE user_id=?", (user_id,))
     
+    # Fetch latest resume analysis if available
+    latest_analysis = None
+    analysis_row = db_fetchall("SELECT filename, analysis_json, created_at FROM resume_analysis WHERE user_id=? ORDER BY id DESC LIMIT 1", (user_id,))
+    if analysis_row and analysis_row[0][1]:
+        try:
+            latest_analysis = json.loads(analysis_row[0][1])
+            latest_analysis["filename"] = analysis_row[0][0]
+            latest_analysis["analyzed_at"] = analysis_row[0][2]
+        except Exception as e:
+            logger.error(f"Error loading saved resume analysis for user {user_id}: {e}")
+
     if not profile:
         return render_template("dashboard.html", student=None, needs_profile=True,
+                             latest_resume_analysis=latest_analysis,
                              show_first_login_alert=session.get('show_first_login_alert', False))
 
-    recs = db_fetchall("""
-        SELECT j.*, r.match_score, r.match_reason FROM job_recommendations r
-        JOIN jobs j ON r.job_id = j.id WHERE r.user_id = ? ORDER BY r.match_score DESC
-    """, (user_id,))
+    # Fetch applied jobs map for student
+    applied_jobs_map = {}
+    app_rows = db_fetchall("SELECT job_id, applied_at, status FROM applications WHERE user_id=?", (user_id,))
+    for a in app_rows:
+        applied_jobs_map[a[0]] = {"applied_at": a[1], "status": a[2]}
+
+    # Get enhanced career recommendations & tracks
+    rec_data = get_recommended_jobs_for_student(user_id, role_filter="all")
+    recs = rec_data.get("jobs", [])
+    career_tracks = rec_data.get("tracks", CAREER_TRACKS)
+    role_counts = rec_data.get("role_counts", {})
 
     # Calculate ATS compatibility insights
     profile_completeness = 0
@@ -584,11 +668,14 @@ def dashboard():
             course_categories.append((category,))
 
     return render_template("dashboard.html", student=profile[0], recommendations=recs,
+                           career_tracks=career_tracks, role_counts=role_counts,
+                           applied_jobs=applied_jobs_map, active_role="all",
                            trends=db_fetchall("SELECT * FROM job_trends ORDER BY id DESC"),
                            courses=all_courses,
                            course_categories=course_categories,
                            videos=db_fetchall("SELECT * FROM course_videos ORDER BY id DESC"),
                            profile_completeness=profile_completeness, ats_insights=ats_insights,
+                           latest_resume_analysis=latest_analysis,
                            needs_profile=False, show_first_login_alert=session.get('show_first_login_alert', False))
 
 @app.route("/save_profile", methods=["POST"])
@@ -620,27 +707,19 @@ def save_profile():
 
     # Trigger Recs
     try:
-        prof = db_fetchall("SELECT * FROM student_profile WHERE user_id=?", (uid,))[0]
-        jobs = db_fetchall("SELECT * FROM jobs")
-        logger.info(f"Generating recommendations for user {uid} with {len(jobs)} jobs")
-
-        # Build student text for debugging
-        from app import build_student_text
-        student_text = build_student_text(prof)
-        logger.info(f"Student text for user {uid}: '{student_text}'")
-
-        label, results = recommend_jobs_logic(prof, jobs)
-        logger.info(f"Generated {len(results)} recommendations for user {uid}")
+        rec_data = get_recommended_jobs_for_student(uid, role_filter="all")
+        jobs_list = rec_data.get("jobs", [])
+        logger.info(f"Generated {len(jobs_list)} recommendations for user {uid}")
 
         # Delete old recommendations
         db_execute("DELETE FROM job_recommendations WHERE user_id=?", (uid,))
 
         # Insert new recommendations
         inserted_count = 0
-        for r in results:
+        for r in jobs_list:
             try:
                 db_execute("INSERT INTO job_recommendations (user_id, job_id, match_score, match_reason, created_at) VALUES (?,?,?,?,?)",
-                           (uid, r["job_id"], r["score"], r["reason"], datetime.now().strftime("%Y-%m-%d")))
+                           (uid, r["id"], r["match_decimal"], r["match_reason"], datetime.now().strftime("%Y-%m-%d")))
                 inserted_count += 1
             except Exception as e:
                 logger.error(f"Error inserting recommendation for user {uid}: {e}")
@@ -655,6 +734,234 @@ def save_profile():
 
     flash("Profile updated and recommendations refreshed!", "success")
     return redirect(url_for("dashboard"))
+
+@app.route("/upload_resume", methods=["POST"])
+@app.route("/parse_resume", methods=["POST"])
+def parse_resume_endpoint():
+    """
+    Secure endpoint to upload and extract career profile information
+    from PDF or DOCX resumes, and run immediate AI analysis.
+    """
+    if session.get("role") != "student":
+        return jsonify({"success": False, "error": "Unauthorized. Please log in as a student."}), 401
+
+    if "resume" not in request.files:
+        return jsonify({"success": False, "error": "No resume file was uploaded. Please choose a file."}), 400
+
+    file = request.files["resume"]
+    if not file or file.filename.strip() == "":
+        return jsonify({"success": False, "error": "No file selected. Please select a valid PDF or DOCX file."}), 400
+
+    filename = secure_filename(file.filename)
+    if not filename:
+        return jsonify({"success": False, "error": "Invalid filename."}), 400
+
+    ext = os.path.splitext(filename)[1].lower()
+    if ext not in [".pdf", ".docx"]:
+        return jsonify({
+            "success": False,
+            "error": f"Unsupported file format '{ext}'. Only PDF and DOCX files are supported."
+        }), 400
+
+    try:
+        file_bytes = file.read()
+        max_size = 10 * 1024 * 1024  # 10 MB limit
+        if len(file_bytes) > max_size:
+            return jsonify({
+                "success": False,
+                "error": f"File size exceeds the 10MB limit (uploaded: {len(file_bytes)/(1024*1024):.1f}MB). Please upload a smaller file."
+            }), 400
+
+        if len(file_bytes) == 0:
+            return jsonify({"success": False, "error": "The uploaded file is empty. Please upload a valid resume."}), 400
+
+        # 1. Extract resume fields
+        extracted_data = parse_resume(file_bytes, filename)
+        uid = session.get("user_id")
+        logger.info(f"Resume parsed successfully for user {uid}: {filename}")
+
+        # 2. Run AI resume analysis
+        raw_text = extracted_data.get("raw_text", "")
+        analysis_result = analyze_resume_content(extracted_data, raw_text)
+        analysis_result["filename"] = filename
+
+        # 3. Save analysis to database for this authenticated student
+        try:
+            db_execute("""
+                INSERT INTO resume_analysis (
+                    user_id, filename, overall_score, grammar_score, skills_score,
+                    formatting_score, ats_score, completeness_score, analysis_json, created_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, (
+                uid,
+                filename,
+                analysis_result["overall_score"],
+                analysis_result["category_scores"]["grammar"]["score"],
+                analysis_result["category_scores"]["skills"]["score"],
+                analysis_result["category_scores"]["formatting"]["score"],
+                analysis_result["category_scores"]["ats"]["score"],
+                analysis_result["category_scores"]["completeness"]["score"],
+                json.dumps(analysis_result),
+                datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            ))
+        except Exception as dbe:
+            logger.error(f"Error persisting resume analysis for user {uid}: {dbe}")
+
+        return jsonify({
+            "success": True,
+            "message": "Resume uploaded, extracted, and analyzed successfully!",
+            "filename": filename,
+            "data": extracted_data,
+            "analysis": analysis_result
+        }), 200
+
+    except ValueError as ve:
+        logger.warning(f"Resume parsing warning for {filename}: {ve}")
+        return jsonify({"success": False, "error": str(ve)}), 400
+    except Exception as e:
+        logger.error(f"Error parsing resume {filename}: {e}", exc_info=True)
+        return jsonify({
+            "success": False,
+            "error": "Failed to parse the resume file. Please ensure it is a valid, readable PDF or DOCX document."
+        }), 500
+
+
+@app.route("/analyze_resume", methods=["POST"])
+def analyze_resume_endpoint():
+    """
+    Analyzes or re-analyzes current profile content or revised resume fields.
+    Computes updated scores, detects remaining issues, and provides fresh recommendations.
+    """
+    if session.get("role") != "student":
+        return jsonify({"success": False, "error": "Unauthorized. Please log in as a student."}), 401
+
+    uid = session.get("user_id")
+    payload = request.get_json(silent=True) or request.form.to_dict() or {}
+
+    filename = payload.get("filename") or "Current_Profile_Resume.pdf"
+    raw_text = payload.get("raw_text", "")
+
+    try:
+        analysis_result = analyze_resume_content(payload, raw_text)
+        analysis_result["filename"] = filename
+
+        # Persist updated analysis
+        try:
+            db_execute("""
+                INSERT INTO resume_analysis (
+                    user_id, filename, overall_score, grammar_score, skills_score,
+                    formatting_score, ats_score, completeness_score, analysis_json, created_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, (
+                uid,
+                filename,
+                analysis_result["overall_score"],
+                analysis_result["category_scores"]["grammar"]["score"],
+                analysis_result["category_scores"]["skills"]["score"],
+                analysis_result["category_scores"]["formatting"]["score"],
+                analysis_result["category_scores"]["ats"]["score"],
+                analysis_result["category_scores"]["completeness"]["score"],
+                json.dumps(analysis_result),
+                datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            ))
+        except Exception as dbe:
+            logger.error(f"Error saving re-analysis for user {uid}: {dbe}")
+
+        return jsonify({
+            "success": True,
+            "message": "Resume re-analyzed successfully! Updated scores and remaining suggestions are shown below.",
+            "analysis": analysis_result
+        }), 200
+
+    except Exception as e:
+        logger.error(f"Error during re-analysis for user {uid}: {e}", exc_info=True)
+        return jsonify({"success": False, "error": f"Analysis failed: {str(e)}"}), 500
+
+
+@app.route("/get_latest_resume_analysis", methods=["GET"])
+def get_latest_resume_analysis():
+    """
+    Returns the latest resume analysis for the logged-in student.
+    """
+    if session.get("role") != "student":
+        return jsonify({"success": False, "error": "Unauthorized"}), 401
+
+    uid = session.get("user_id")
+    row = db_fetchall("""
+        SELECT filename, analysis_json, created_at 
+        FROM resume_analysis 
+        WHERE user_id=? 
+        ORDER BY id DESC LIMIT 1
+    """, (uid,))
+
+    if not row or not row[0][1]:
+        return jsonify({"success": False, "message": "No previous analysis found"}), 404
+
+    try:
+        analysis = json.loads(row[0][1])
+        analysis["filename"] = row[0][0]
+        analysis["analyzed_at"] = row[0][2]
+        return jsonify({"success": True, "analysis": analysis}), 200
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+@app.route("/download_improved_resume", methods=["POST"])
+def download_improved_resume():
+    """
+    Generates and downloads a clean, professional, ATS-friendly PDF resume
+    based on the user's reviewed and approved Career Profile details.
+    """
+    if session.get("role") != "student":
+        return redirect(url_for("login"))
+
+    uid = session.get("user_id")
+    if request.is_json:
+        data = request.get_json()
+    else:
+        data = request.form.to_dict()
+
+    # If data is empty, fallback to fetching from student_profile in DB
+    if not data or not data.get("full_name"):
+        prof = db_fetchall("SELECT * FROM student_profile WHERE user_id=?", (uid,))
+        if prof:
+            p = prof[0]
+            data = {
+                "full_name": p[2],
+                "register_number": p[3],
+                "college_name": p[4],
+                "batch_year": p[5],
+                "current_semester": p[6],
+                "skills": p[7],
+                "skill_ratings": p[8],
+                "experience": p[9],
+                "interests": p[10],
+                "tech_stack": p[11],
+                "location": p[12]
+            }
+
+    # Also check user table for email if missing
+    if not data.get("email"):
+        u = db_fetchall("SELECT email FROM users WHERE id=?", (uid,))
+        if u:
+            data["email"] = u[0][0]
+
+    try:
+        pdf_buffer = generate_improved_resume_pdf(data)
+        raw_name = data.get("full_name") or "Student"
+        safe_name = re.sub(r'[^a-zA-Z0-9_-]', '_', raw_name)
+        download_filename = f"Improved_ATS_Resume_{safe_name}.pdf"
+
+        return send_file(
+            pdf_buffer,
+            as_attachment=True,
+            download_name=download_filename,
+            mimetype="application/pdf"
+        )
+    except Exception as e:
+        logger.error(f"Error generating improved resume for user {uid}: {e}", exc_info=True)
+        flash("Could not generate improved resume. Please check your profile details and try again.", "danger")
+        return redirect(url_for("dashboard"))
 
 @app.route("/admin", methods=["GET", "POST"])
 def admin():
@@ -828,12 +1135,173 @@ def download_report():
 
 @app.route("/chat", methods=["POST"])
 def chat():
-    msg = request.json.get("message", "").lower()
-    resp = "I can help with jobs, skills, or courses! Try asking 'What jobs are recommended?'"
-    if "job" in msg: resp = "Check the 'Job Recommendations' tab for AI-matched roles!"
-    elif "skill" in msg: resp = "Updating your profile with new skills will improve your matches!"
-    elif "course" in msg: resp = "We have courses tailored to your profile in the 'Courses' section."
-    return {"response": resp}
+    """
+    Intelligent Conversational AI Chatbot Endpoint.
+    Integrates external LLM (OpenAI/Gemini) if configured, or uses advanced local
+    multi-domain reasoning engine for coding, careers, resume, education, jobs, and follow-ups.
+    """
+    payload = request.get_json(silent=True, force=True) or request.form.to_dict() or {}
+    if not payload and request.data:
+        try:
+            payload = json.loads(request.data.decode("utf-8"))
+        except:
+            payload = {}
+    user_message = (payload.get("message") or payload.get("prompt") or "").strip()
+    history = payload.get("history", [])
+
+    if not user_message:
+        return jsonify({"success": False, "response": "Please type a question so I can assist you!"})
+
+    # Gather authenticated student profile context if available
+    student_context = {}
+    uid = session.get("user_id")
+    if uid and session.get("role") == "student":
+        prof = db_fetchall("SELECT * FROM student_profile WHERE user_id=?", (uid,))
+        if prof:
+            p = prof[0]
+            student_context = {
+                "name": p[2] or "Student",
+                "skills": p[7] or "",
+                "interests": p[10] or "",
+                "tech_stack": p[11] or "",
+                "college": p[4] or ""
+            }
+
+    try:
+        reply_text = process_chat_message(user_message, history=history, student_context=student_context)
+        return jsonify({"success": True, "response": reply_text})
+    except Exception as e:
+        logger.error(f"Error in chat endpoint: {e}", exc_info=True)
+        return jsonify({
+            "success": True,
+            "response": "I encountered a temporary processing hiccup. Please rephrase or ask another question about careers, coding, courses, or jobs!"
+        })
+
+
+@app.route("/apply_job", methods=["POST"])
+def apply_job():
+    """
+    Internal Job Application Submission Endpoint.
+    Submits application directly, validates job ID, prevents duplicate applications,
+    attaches candidate resume, and persists application status in SQLite.
+    """
+    if session.get("role") != "student":
+        return jsonify({"success": False, "error": "Please log in as a student to apply for jobs."}), 401
+
+    uid = session.get("user_id")
+    payload = request.get_json(silent=True) or request.form.to_dict() or {}
+    job_id = payload.get("job_id")
+    cover_note = (payload.get("cover_note") or "").strip()
+
+    if not job_id:
+        return jsonify({"success": False, "error": "Job ID is required."}), 400
+
+    try:
+        job_id = int(job_id)
+    except ValueError:
+        return jsonify({"success": False, "error": "Invalid Job ID format."}), 400
+
+    # Validate that job exists in the database
+    job_row = db_fetchall("SELECT id, title, description, required_skills, posted_by, application_link FROM jobs WHERE id=?", (job_id,))
+    if not job_row:
+        return jsonify({"success": False, "error": f"Job with ID #{job_id} was not found."}), 404
+
+    job = job_row[0]
+    job_title = job[1]
+    company = job[4] or "Company"
+
+    # Check for duplicate application
+    existing_app = db_fetchall("SELECT id, applied_at, status FROM applications WHERE user_id=? AND job_id=?", (uid, job_id))
+    if existing_app:
+        return jsonify({
+            "success": False,
+            "already_applied": True,
+            "message": f"You have already applied for '{job_title}' at {company} on {existing_app[0][1]}.",
+            "applied_at": existing_app[0][1],
+            "status": existing_app[0][2]
+        }), 200
+
+    # Retrieve student details
+    student_prof = db_fetchall("SELECT * FROM student_profile WHERE user_id=?", (uid,))
+    user_info = db_fetchall("SELECT username, email FROM users WHERE id=?", (uid,))
+
+    student_name = student_prof[0][2] if student_prof and student_prof[0][2] else (user_info[0][0] if user_info else "Applicant")
+    email = user_info[0][1] if user_info else ""
+    phone = student_prof[0][12] if student_prof and student_prof[0][12] else ""
+
+    # Check for latest uploaded resume
+    latest_res = db_fetchall("SELECT filename FROM resume_analysis WHERE user_id=? ORDER BY id DESC LIMIT 1", (uid,))
+    resume_fn = latest_res[0][0] if latest_res and latest_res[0][0] else f"{student_name.replace(' ', '_')}_Resume.pdf"
+
+    applied_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    try:
+        db_execute("""
+            INSERT INTO applications (user_id, job_id, student_name, email, phone, resume_filename, cover_note, status, applied_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, 'Applied', ?)
+        """, (uid, job_id, student_name, email, phone, resume_fn, cover_note, applied_at))
+
+        logger.info(f"User {uid} ({student_name}) successfully applied for Job #{job_id} ({job_title})")
+
+        return jsonify({
+            "success": True,
+            "message": f"Application submitted successfully for '{job_title}' at {company}!",
+            "job_id": job_id,
+            "job_title": job_title,
+            "company": company,
+            "status": "Applied",
+            "applied_at": applied_at
+        }), 200
+
+    except Exception as e:
+        logger.error(f"Error persisting application for user {uid}, job {job_id}: {e}", exc_info=True)
+        return jsonify({"success": False, "error": "Internal database error while submitting your application. Please try again."}), 500
+
+
+@app.route("/get_career_recommendations", methods=["GET"])
+def get_career_recommendations_endpoint():
+    """
+    API endpoint to fetch personalized, deduplicated job recommendations
+    dynamically filtered by career track / role.
+    """
+    if session.get("role") != "student":
+        return jsonify({"success": False, "error": "Unauthorized"}), 401
+
+    uid = session.get("user_id")
+    role_filter = request.args.get("role", "all")
+    result = get_recommended_jobs_for_student(uid, role_filter=role_filter)
+    return jsonify(result)
+
+
+@app.route("/my_applications", methods=["GET"])
+def my_applications():
+    """
+    API endpoint returning all jobs applied by the current student.
+    """
+    if session.get("role") != "student":
+        return jsonify({"success": False, "error": "Unauthorized"}), 401
+
+    uid = session.get("user_id")
+    apps = db_fetchall("""
+        SELECT a.id, a.job_id, a.applied_at, a.status, j.title, j.posted_by
+        FROM applications a 
+        JOIN jobs j ON a.job_id = j.id 
+        WHERE a.user_id=? 
+        ORDER BY a.id DESC
+    """, (uid,))
+
+    results = []
+    for a in apps:
+        results.append({
+            "application_id": a[0],
+            "job_id": a[1],
+            "applied_at": a[2],
+            "status": a[3],
+            "job_title": a[4],
+            "company": a[5]
+        })
+
+    return jsonify({"success": True, "applications": results})
 
 @app.route("/test_email")
 def test_email():
@@ -883,4 +1351,6 @@ def debug_session():
     """
 
 if __name__ == "__main__":
-    app.run(debug=True, host='0.0.0.0', port=5007)
+    port = int(os.environ.get("PORT", 5007))
+    debug = os.environ.get("FLASK_ENV", "development").lower() == "development"
+    app.run(debug=debug, host='0.0.0.0', port=port)

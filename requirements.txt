@@ -1,7 +1,12 @@
 # Essential packages for Smart Career Portal
 Flask
+flask-mail
+python-dotenv
+PyPDF2
+docx2txt
 joblib
 scikit-learn
 pandas
 numpy
 reportlab
+gunicorn

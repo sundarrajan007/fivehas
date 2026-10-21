@@ -746,4 +746,6 @@ def logout():
     return redirect(url_for("login"))
 
 if __name__ == "__main__":
-    app.run(debug=True, host='127.0.0.1', port=5007)
+    # use_reloader=False: debug reloader loads sklearn/pickles twice and delays bind
+    # by tens of seconds; browsers opened early see ERR_CONNECTION_REFUSED.
+    app.run(debug=True, use_reloader=False, host="127.0.0.1", port=5007)
