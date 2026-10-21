@@ -332,6 +332,16 @@ def favicon():
 def test():
     return "Flask server is active!"
 
+@app.route("/health")
+def health():
+    return jsonify({
+        "status": "healthy",
+        "service": "Fivehas Smart Career Guidance & Employment Portal",
+        "database": os.path.exists(DB_PATH),
+        "ai_model": model is not None,
+        "timestamp": datetime.now().isoformat()
+    }), 200
+
 @app.route("/")
 def index():
     # Always show home page as the landing page, regardless of login status
