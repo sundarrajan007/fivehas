@@ -393,25 +393,31 @@ def generate_improved_resume_pdf(data):
         story.append(Spacer(1, 4))
 
     # 5. EDUCATION SECTION
-    college = data.get("college_name") or data.get("education")
+    college_raw = data.get("college_name") or data.get("education") or ""
+    if any(bad in str(college_raw).lower() for bad in ["dynamic charts", "goals", "performance over time", "dashboard", "tracker", "built"]):
+        college_raw = ""
+    college = str(college_raw).strip() or "Bachelor of Engineering / Technology"
     batch = data.get("batch_year")
     sem = data.get("current_semester")
-    if college or batch or sem:
-        story.append(Paragraph("EDUCATION", section_header_style))
-        story.append(HRFlowable(width="100%", thickness=0.5, color=colors.HexColor("#cbd5e1"), spaceAfter=5))
+    dept = data.get("department") or data.get("branch")
 
-        edu_headline = f"{clean_xml_chars(college or 'Bachelor of Engineering / Technology')}"
-        story.append(Paragraph(edu_headline, bold_body_style))
+    story.append(Paragraph("EDUCATION", section_header_style))
+    story.append(HRFlowable(width="100%", thickness=0.5, color=colors.HexColor("#cbd5e1"), spaceAfter=5))
 
-        edu_meta_parts = []
-        if sem:
-            edu_meta_parts.append(f"Semester: {clean_xml_chars(sem)}")
-        if batch:
-            edu_meta_parts.append(f"Graduation Batch / Year: {clean_xml_chars(batch)}")
-        
-        if edu_meta_parts:
-            story.append(Paragraph("  |  ".join(edu_meta_parts), body_style))
-        story.append(Spacer(1, 4))
+    edu_headline = clean_xml_chars(college)
+    if dept and dept not in edu_headline:
+        edu_headline += f" — {clean_xml_chars(dept)}"
+    story.append(Paragraph(edu_headline, bold_body_style))
+
+    edu_meta_parts = []
+    if sem:
+        edu_meta_parts.append(f"Semester: {clean_xml_chars(sem)}")
+    if batch:
+        edu_meta_parts.append(f"Graduation Batch / Year: {clean_xml_chars(batch)}")
+    
+    if edu_meta_parts:
+        story.append(Paragraph("  |  ".join(edu_meta_parts), body_style))
+    story.append(Spacer(1, 4))
 
     # 6. ATS Verified Footer
     story.append(Spacer(1, 10))

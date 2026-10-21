@@ -1035,18 +1035,33 @@ def download_improved_resume():
         flash("No resume or career profile data found. Please upload your resume or complete your profile before downloading an improved resume.", "warning")
         return redirect(url_for("dashboard") + "#profile")
 
+    # Clean college_name if corrupted with project fragments
+    if data.get("college_name"):
+        c_val = str(data["college_name"])
+        if any(bad in c_val.lower() for bad in ["dynamic charts", "goals", "performance over time", "dashboard", "tracker", "built"]):
+            # Fallback to database value or default
+            prof_check = db_fetchall("SELECT college_name FROM student_profile WHERE user_id=?", (uid,))
+            data["college_name"] = prof_check[0][0] if (prof_check and prof_check[0][0] and "charts" not in prof_check[0][0].lower()) else "Bachelor of Engineering / Technology"
+
     try:
         pdf_buffer = generate_improved_resume_pdf(data)
         raw_name = data.get("full_name") or "Student"
         safe_name = re.sub(r'[^a-zA-Z0-9_-]', '_', raw_name)
         download_filename = f"SkillMatch_ATS_Resume_{safe_name}.pdf"
 
-        return send_file(
+        # Determine download vs inline preview mode
+        is_attachment = (request.args.get("download") == "1" or request.form.get("download") == "1")
+
+        response = send_file(
             pdf_buffer,
-            as_attachment=True,
+            as_attachment=is_attachment,
             download_name=download_filename,
             mimetype="application/pdf"
         )
+        response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+        response.headers["Pragma"] = "no-cache"
+        response.headers["Expires"] = "0"
+        return response
     except Exception as e:
         logger.error(f"Error generating improved resume for user {uid}: {e}", exc_info=True)
         flash("Could not generate improved resume. Please check your profile details and try again.", "danger")

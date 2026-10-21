@@ -285,10 +285,17 @@ def extract_register_number(text):
 
 
 def extract_college_name(text):
-    """Extract college or university name."""
+    """Extract college or university name with strict boundary checks."""
     college_keywords = [
-        r'([A-Za-z\s.,\'\-&]+(?:College\s+of\s+Engineering|Institute\s+of\s+Technology|Engineering\s+College|University|College|Institute|Academy)[A-Za-z\s.,\'\-&]*)',
-        r'((?:Karpagam|PSG|CIT|Amrita|Anna|SRM|VIT|Sathyabama|Loyola|SSN|Kumaraguru|Bannari\s+Amman|Kongu|Sri\s+Krishna|Government)[A-Za-z\s.,\'\-&]+)'
+        r'\b([A-Za-z\s.,\'\-&]{2,}(?:College\s+of\s+Engineering|Institute\s+of\s+Technology|Engineering\s+College|University|College|Institute|Academy)\b[A-Za-z\s.,\'\-&]*)',
+        r'\b((?:Karpagam|PSG|CIT|Amrita|Anna|SRM|VIT|Sathyabama|Loyola|SSN|Kumaraguru|Bannari\s+Amman|Kongu|Sri\s+Krishna|Government)\s+[A-Za-z\s.,\'\-&]+)'
+    ]
+    
+    # Common non-college words to reject false positives
+    disallowed = [
+        "objective", "skills", "experience", "declaration", "project",
+        "tracker", "performance", "goals", "metrics", "dashboard",
+        "developed", "built", "designed", "react", "node", "activity"
     ]
     
     # Check lines near education headings or whole text
@@ -298,8 +305,9 @@ def extract_college_name(text):
             m = re.search(p, line, re.IGNORECASE)
             if m:
                 cand = m.group(1).strip().rstrip('.,-')
-                # Ensure it looks like a reasonable college name length
-                if 10 <= len(cand) <= 80 and not any(kw in cand.lower() for kw in ["objective", "skills", "experience", "declaration"]):
+                cand_lower = cand.lower()
+                # Ensure it looks like a reasonable college name length and doesn't contain project/experience words
+                if 8 <= len(cand) <= 80 and not any(kw in cand_lower for kw in disallowed):
                     return cand
     return ""
 

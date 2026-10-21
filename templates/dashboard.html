@@ -2364,6 +2364,9 @@
                     </span>
                 </div>
                 {% endif %}
+                <button type="button" class="btn btn-outline" onclick="showSection('profile')" style="background: rgba(37, 99, 235, 0.12); border: 1px solid rgba(96, 165, 250, 0.3); color: #93c5fd; padding: 8px 14px; border-radius: 8px; font-size: 0.84rem; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
+                    <i class="fas fa-id-card"></i> My Career Profile
+                </button>
                 <!-- Theme Toggle -->
                 <button class="theme-toggle" onclick="toggleTheme()">
                     <i class="fas fa-moon"></i>
@@ -2831,8 +2834,11 @@
                                 <button type="button" class="btn btn-sm btn-outline" onclick="reanalyzeCurrentForm()" style="background: rgba(37, 99, 235, 0.15); border: 1px solid rgba(96, 165, 250, 0.35); color: var(--accent); padding: 8px 14px; border-radius: 8px; font-size: 0.82rem; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
                                     <i class="fas fa-rotate"></i> Re-analyze Content
                                 </button>
-                                <button type="button" class="btn btn-sm" onclick="downloadImprovedResume()" style="background: linear-gradient(135deg, #059669, #10b981); color: white; border: none; padding: 8px 14px; border-radius: 8px; font-size: 0.82rem; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
+                                <button type="button" class="btn btn-sm" onclick="downloadImprovedResume('download')" style="background: linear-gradient(135deg, #059669, #10b981); color: white; border: none; padding: 8px 14px; border-radius: 8px; font-size: 0.82rem; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
                                     <i class="fas fa-file-pdf"></i> Download Improved Resume
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline" onclick="downloadImprovedResume('preview')" style="background: rgba(37, 99, 235, 0.15); border: 1px solid rgba(96, 165, 250, 0.35); color: #93c5fd; padding: 8px 14px; border-radius: 8px; font-size: 0.82rem; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
+                                    <i class="fas fa-eye"></i> View PDF
                                 </button>
                             </div>
                         </div>
@@ -3017,11 +3023,14 @@
                         <button type="submit" class="btn btn-primary" style="flex: 1; min-width: 250px;">
                             <i class="fas fa-save"></i> Save Profile &amp; Refresh Recommendations
                         </button>
-                        <button type="button" class="btn btn-success" onclick="downloadImprovedResume()" style="background: linear-gradient(135deg, #059669, #10b981); color: white; border: none; padding: 12px 22px; border-radius: 8px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 8px;">
+                        <button type="button" class="btn btn-success" onclick="downloadImprovedResume('download')" style="background: linear-gradient(135deg, #059669, #10b981); color: white; border: none; padding: 12px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 8px;">
                             <i class="fas fa-file-pdf"></i> Download Improved Resume (ATS PDF)
                         </button>
+                        <button type="button" class="btn btn-outline" onclick="downloadImprovedResume('preview')" style="background: rgba(37, 99, 235, 0.15); border: 1px solid rgba(96, 165, 250, 0.35); color: #93c5fd; padding: 12px 18px; border-radius: 8px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 8px;">
+                            <i class="fas fa-eye"></i> View in Browser
+                        </button>
                         <button type="button" class="btn btn-secondary" onclick="reanalyzeCurrentForm()" style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.2); color: var(--text-light); padding: 12px 18px; border-radius: 8px; font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; gap: 8px;">
-                            <i class="fas fa-rotate"></i> Re-analyze Revised Content
+                            <i class="fas fa-rotate"></i> Re-analyze Content
                         </button>
                     </div>
                 </form>
@@ -5223,13 +5232,8 @@
             }
         }
 
-        // Download Improved Resume PDF
-        function downloadImprovedResume() {
-            const form = document.createElement('form');
-            form.method = 'POST';
-            form.action = '/download_improved_resume';
-            form.target = '_blank';
-
+        // Download or Preview Improved Resume PDF
+        async function downloadImprovedResume(mode = 'download') {
             const fields = [
                 'prof_full_name', 'prof_register_number', 'prof_college_name',
                 'prof_batch_year', 'prof_current_semester', 'prof_location',
@@ -5237,18 +5241,13 @@
                 'prof_tech_stack', 'prof_experience'
             ];
 
+            const formData = new FormData();
             let hasAnyData = false;
             fields.forEach(fId => {
                 const elem = document.getElementById(fId);
-                if (elem) {
-                    const input = document.createElement('input');
-                    input.type = 'hidden';
-                    input.name = elem.name;
-                    input.value = elem.value || '';
-                    if (elem.value && elem.value.trim()) {
-                        hasAnyData = true;
-                    }
-                    form.appendChild(input);
+                if (elem && elem.value && elem.value.trim()) {
+                    formData.append(elem.name, elem.value.trim());
+                    hasAnyData = true;
                 }
             });
 
@@ -5258,10 +5257,47 @@
                 return;
             }
 
-            document.body.appendChild(form);
-            form.submit();
-            document.body.removeChild(form);
-            showResumeAlert('Generating & downloading your improved ATS-compliant PDF resume...', 'info');
+            if (mode === 'preview') {
+                // Open inline preview in a new tab directly from the verified web endpoint
+                window.open('/download_improved_resume', '_blank');
+                return;
+            }
+
+            showResumeAlert('Generating your improved ATS-compliant PDF resume...', 'info');
+
+            try {
+                const response = await fetch('/download_improved_resume?download=1', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    throw new Error('Server returned ' + response.status);
+                }
+
+                const blob = await response.blob();
+                const blobUrl = window.URL.createObjectURL(blob);
+                const downloadLink = document.createElement('a');
+                downloadLink.style.display = 'none';
+                downloadLink.href = blobUrl;
+                
+                const nameElem = document.getElementById('prof_full_name');
+                const candName = (nameElem && nameElem.value.trim()) ? nameElem.value.trim().replace(/[^a-zA-Z0-9_-]/g, '_') : 'Candidate';
+                downloadLink.download = `SkillMatch_ATS_Resume_${candName}.pdf`;
+
+                document.body.appendChild(downloadLink);
+                downloadLink.click();
+                
+                setTimeout(() => {
+                    document.body.removeChild(downloadLink);
+                    window.URL.revokeObjectURL(blobUrl);
+                }, 2000);
+
+                showResumeAlert('Your improved resume PDF has been downloaded successfully!', 'success');
+            } catch (err) {
+                console.warn('Fetch download failed, falling back to direct navigation:', err);
+                window.location.href = '/download_improved_resume?download=1';
+            }
         }
 
         function escapeHtml(text) {

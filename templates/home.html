@@ -1225,6 +1225,9 @@
       {% if session.get('username') %}
       <a href="/dashboard">Dashboard</a>
       <a href="/dashboard#jobs">Jobs</a>
+      <a href="/dashboard#profile" class="nav-profile-link"><i class="fas fa-user-circle"></i> Profile</a>
+      {% else %}
+      <a href="/login" class="nav-profile-link"><i class="fas fa-user-circle"></i> Profile</a>
       {% endif %}
     </div>
     <div class="nav-actions">
