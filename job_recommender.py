@@ -663,6 +663,7 @@ def get_recommended_jobs_for_student(user_id, role_filter="all", limit=50):
 
         display_source = source if source else ("Verified External Posting" if is_ext else "SkillMatch Curated Portal")
         display_location = location if location else "Bengaluru / Hybrid"
+        is_fresher_friendly = bool((min_exp or 0) == 0 or any(w in (title or "").lower() for w in ["fresher", "intern", "entry", "trainee", "associate", "junior"]))
 
         processed_jobs.append(JobItem({
             "id": j_id,
@@ -683,6 +684,8 @@ def get_recommended_jobs_for_student(user_id, role_filter="all", limit=50):
             "applied": is_applied,
             "applied_at": app_info["applied_at"] if is_applied else None,
             "application_status": app_info["status"] if is_applied else None,
+            "min_experience_years": min_exp or 0,
+            "is_fresher_friendly": is_fresher_friendly,
             "created_at": created_at or "Recently"
         }))
 
@@ -695,6 +698,27 @@ def get_recommended_jobs_for_student(user_id, role_filter="all", limit=50):
 
     # Sort strictly by match score descending, then prioritize unapplied
     filtered_jobs.sort(key=lambda x: (x["match_score"], not x["applied"]), reverse=True)
+
+    has_uploaded_resume = bool(analysis_row and analysis_row[0])
+    has_profile_skills = bool(prof_row and (prof_row[7] or prof_row[9] or prof_row[11]))
+    has_resume = bool(has_uploaded_resume or has_profile_skills)
+
+    # Separate into Resume Suggestions vs Explore Other Roles
+    suggested_jobs = []
+    other_roles = []
+
+    for j in filtered_jobs:
+        # Suggestion criteria: candidate has resume/skills AND at least 1 matching skill AND match_score >= 35%
+        if has_resume and len(j["matched_skills"]) >= 1 and j["match_score"] >= 35:
+            j["is_suggestion"] = True
+            suggested_jobs.append(j)
+        else:
+            j["is_suggestion"] = False
+            if j["missing_skills"]:
+                j["other_reason"] = f"Requires developing: {', '.join(j['missing_skills'][:3])} to qualify."
+            else:
+                j["other_reason"] = "Industry role requiring additional technical specialization."
+            other_roles.append(j)
 
     # Empty state handling with related recommendations
     related_tracks = []
@@ -716,11 +740,16 @@ def get_recommended_jobs_for_student(user_id, role_filter="all", limit=50):
 
     return {
         "success": True,
+        "has_resume": has_resume,
         "active_role": active_filter,
         "total_count": len(filtered_jobs),
+        "suggestions_count": len(suggested_jobs),
+        "other_count": len(other_roles),
         "role_counts": role_counts,
         "tracks": CAREER_TRACKS,
         "related_tracks": related_tracks,
+        "suggestions": suggested_jobs[:limit],
+        "other_roles": other_roles[:limit],
         "jobs": filtered_jobs[:limit]
     }
 

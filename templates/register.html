@@ -1382,22 +1382,6 @@
       .form-group {
         margin-bottom: 20px;
       }
-
-      /* Mobile-optimized install button */
-      .install-btn-mobile {
-        position: fixed !important;
-        bottom: 20px !important;
-        right: 20px !important;
-        left: 20px !important;
-        width: auto !important;
-        margin: 0 auto !important;
-        max-width: 200px !important;
-      }
-
-      /* Adjust main container for install button */
-      .main-container {
-        padding-bottom: 100px;
-      }
     }
 
     /* iOS specific styles */
@@ -1791,47 +1775,6 @@
           });
       });
     }
-
-    // PWA Install Prompt
-    let deferredPrompt;
-    const installButton = document.createElement('button');
-    installButton.innerHTML = '<i class="fas fa-download"></i> Install App';
-    installButton.style.cssText = `
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      background: #2563eb;
-      color: white;
-      border: none;
-      padding: 12px 20px;
-      border-radius: 25px;
-      font-size: 14px;
-      font-weight: 600;
-      cursor: pointer;
-      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
-      display: none;
-      z-index: 1000;
-    `;
-
-    window.addEventListener('beforeinstallprompt', (e) => {
-      e.preventDefault();
-      deferredPrompt = e;
-      installButton.style.display = 'block';
-      document.body.appendChild(installButton);
-    });
-
-    installButton.addEventListener('click', () => {
-      if (deferredPrompt) {
-        deferredPrompt.prompt();
-        deferredPrompt.userChoice.then((choiceResult) => {
-          if (choiceResult.outcome === 'accepted') {
-            console.log('User accepted the install prompt');
-          }
-          deferredPrompt = null;
-          installButton.style.display = 'none';
-        });
-      }
-    });
 
   </script>
 </body>

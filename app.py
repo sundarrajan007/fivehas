@@ -632,6 +632,9 @@ def dashboard():
     # Get enhanced career recommendations & tracks
     rec_data = get_recommended_jobs_for_student(user_id, role_filter="all")
     recs = rec_data.get("jobs", [])
+    suggested_jobs = rec_data.get("suggestions", [])
+    other_roles = rec_data.get("other_roles", [])
+    has_resume = rec_data.get("has_resume", False)
     career_tracks = rec_data.get("tracks", CAREER_TRACKS)
     role_counts = rec_data.get("role_counts", {})
 
@@ -698,6 +701,7 @@ def dashboard():
             course_categories.append((category,))
 
     return render_template("dashboard.html", student=profile[0], recommendations=recs,
+                           suggested_jobs=suggested_jobs, other_roles=other_roles, has_resume=has_resume,
                            career_tracks=career_tracks, role_counts=role_counts,
                            career_path=career_path, recommended_courses=recommended_courses,
                            applied_jobs=applied_jobs_map, active_role="all",
@@ -889,7 +893,11 @@ def parse_resume_endpoint():
             "filename": filename,
             "data": extracted_data,
             "analysis": analysis_result,
-            "recommendations": updated_recs.get("jobs", [])
+            "recommendations": updated_recs.get("jobs", []),
+            "suggestions": updated_recs.get("suggestions", []),
+            "other_roles": updated_recs.get("other_roles", []),
+            "has_resume": updated_recs.get("has_resume", True),
+            "role_counts": updated_recs.get("role_counts", {})
         }), 200
 
     except ValueError as ve:

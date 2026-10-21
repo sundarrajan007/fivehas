@@ -3252,96 +3252,282 @@
                         </button>
                     </div>
 
-                    <!-- Job Recommendations Grid Container -->
-                    <div id="jobsGridContainer" class="recommendations-grid">
-                        {% if recommendations %}
-                            {% for job in recommendations %}
-                            <div class="job-card" id="job_card_{{ job.id }}">
-                                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; flex-wrap: wrap; gap: 6px;">
-                                    <span class="match-badge" style="position: static; display: inline-block;">{{ job.match_score }}% Match</span>
-                                    <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
-                                        {% if job.is_external %}
-                                            <span style="background: rgba(37, 99, 235, 0.2); color: #93c5fd; border: 1px solid rgba(59, 130, 246, 0.4); padding: 2px 8px; border-radius: 10px; font-size: 0.72rem; font-weight: 600;">
-                                                <i class="fas fa-external-link-alt"></i> {{ job.source }}
-                                            </span>
-                                        {% else %}
-                                            <span style="background: rgba(148, 163, 184, 0.15); color: #cbd5e1; border: 1px solid rgba(148, 163, 184, 0.3); padding: 2px 8px; border-radius: 10px; font-size: 0.72rem; font-weight: 600;">
-                                                <i class="fas fa-building"></i> Portal Role
-                                            </span>
-                                        {% endif %}
-                                        {% if job.applied %}
-                                            <span class="badge-applied" id="badge_applied_{{ job.id }}" style="background: rgba(34, 197, 94, 0.2); color: #86efac; border: 1px solid rgba(34, 197, 94, 0.4); padding: 2px 8px; border-radius: 10px; font-size: 0.72rem; font-weight: 600;">
-                                                <i class="fas fa-check-circle"></i> Applied
-                                            </span>
-                                        {% endif %}
-                                    </div>
-                                </div>
-                                <h4 style="margin: 6px 0 4px 0; color: var(--text-light); font-size: 1.05rem;">{{ job.title }}</h4>
-                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-size: 0.85rem;">
-                                    <span style="color: var(--accent); font-weight: 500;">🏢 {{ job.company }}</span>
-                                    <span style="color: var(--text-muted); font-size: 0.78rem;"><i class="fas fa-map-marker-alt"></i> {{ job.location or 'India' }}</span>
-                                </div>
-                                <p style="font-size: 0.84rem; color: #cbd5e1; line-height: 1.4; margin-bottom: 12px;">{{ job.description[:130] }}{{ '...' if job.description|length > 130 else '' }}</p>
-
-                                <!-- Skill Compatibility Analysis -->
-                                <div class="skill-analysis" style="margin: 12px 0; padding: 10px 12px; background: rgba(15, 23, 42, 0.6); border-radius: 8px; border-left: 3px solid var(--accent);">
-                                    <div style="font-size: 0.72rem; font-weight: 700; color: var(--accent); margin-bottom: 6px; letter-spacing: 0.5px;">SKILL COMPATIBILITY</div>
-                                    {% if job.matched_skills %}
-                                        <div style="margin-bottom: 5px; display: flex; flex-wrap: wrap; gap: 4px;">
-                                            {% for ms in job.matched_skills[:4] %}
-                                                <span style="background: rgba(34, 197, 94, 0.15); color: #86efac; border: 1px solid rgba(34,197,94,0.3); font-size: 0.72rem; padding: 1px 6px; border-radius: 4px;">✓ {{ ms }}</span>
-                                            {% endfor %}
-                                        </div>
-                                    {% endif %}
-                                    {% if job.missing_skills %}
-                                        <div style="display: flex; flex-wrap: wrap; gap: 4px;">
-                                            {% for us in job.missing_skills[:3] %}
-                                                <span style="background: rgba(245, 158, 11, 0.15); color: #fde047; border: 1px solid rgba(245,158,11,0.3); font-size: 0.72rem; padding: 1px 6px; border-radius: 4px;">+ {{ us }}</span>
-                                            {% endfor %}
-                                        </div>
-                                    {% endif %}
-                                    <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 6px; line-height: 1.3;">
-                                        {{ job.match_reason }}
-                                    </div>
-                                </div>
-
-                                <!-- Application Action Button -->
-                                <div style="margin-top: 14px; display: flex; gap: 8px;">
-                                    {% if job.applied %}
-                                        <button type="button" class="btn btn-secondary" disabled style="width: 100%; justify-content: center; background: rgba(34, 197, 94, 0.15); border: 1px solid rgba(34, 197, 94, 0.4); color: #86efac; font-size: 0.82rem; cursor: default;">
-                                            <i class="fas fa-check-double"></i> Applied on {{ job.applied_at[:10] if job.applied_at else 'Portal' }}
-                                        </button>
-                                    {% elif job.is_external and job.application_link %}
-                                        <a href="{{ job.application_link }}" target="_blank" rel="noopener noreferrer" class="btn btn-primary" style="flex: 1; justify-content: center; font-size: 0.84rem; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
-                                            <i class="fas fa-external-link-alt"></i> Apply on {{ job.company }}
-                                        </a>
-                                        <button type="button" onclick="recordExternalApplication('{{ job.id }}', '{{ job.title|replace('\'', '\\\'') }}', '{{ job.company|replace('\'', '\\\'') }}')" class="btn btn-outline" style="border: 1px solid rgba(255,255,255,0.2); color: var(--accent); padding: 8px 12px; font-size: 0.8rem; border-radius: 8px;" title="Mark as Applied on Portal">
-                                            <i class="fas fa-check"></i> Track
-                                        </button>
-                                    {% else %}
-                                        <button type="button" id="btn_apply_job_{{ job.id }}" onclick="openApplyJobModal('{{ job.id }}', '{{ job.title|replace('\'', '\\\'') }}', '{{ job.company|replace('\'', '\\\'') }}')" class="btn btn-primary" style="flex: 1; justify-content: center; font-size: 0.84rem;">
-                                            <i class="fas fa-paper-plane"></i> Apply via Portal
-                                        </button>
-                                    {% endif %}
-                                </div>
-                            </div>
-                            {% endfor %}
-                        {% else %}
-                            <div class="text-center" style="grid-column: 1 / -1; padding: 40px;">
-                                <i class="fas fa-search fa-3x" style="color: var(--text-muted); margin-bottom: 15px;"></i>
-                                <p class="text-muted">No jobs matching your profile were found. Try updating your skills in Career Profile!</p>
-                            </div>
-                        {% endif %}
+                    <!-- Sub-Navigation: Suggestions vs Explore Other Roles -->
+                    <div class="jobs-subnav-container" style="display: flex; gap: 12px; margin-bottom: 22px; flex-wrap: wrap; align-items: center;">
+                        <button type="button" id="tabBtnSuggestions" class="jobs-mode-btn active" onclick="switchJobsSubTab('suggestions')">
+                            <i class="fas fa-sparkles"></i>
+                            <span>Suggestions <small style="opacity: 0.85;">(Based on Resume)</small></span>
+                            <span class="count-pill" id="pill_suggestions_count">{{ (suggested_jobs|length) if suggested_jobs else 0 }}</span>
+                        </button>
+                        <button type="button" id="tabBtnExplore" class="jobs-mode-btn" onclick="switchJobsSubTab('explore')">
+                            <i class="fas fa-compass"></i>
+                            <span>Explore Other Roles</span>
+                            <span class="count-pill" id="pill_explore_count">{{ (other_roles|length) if other_roles else 0 }}</span>
+                        </button>
                     </div>
 
-                    <!-- Dynamic Empty State (Hidden by default) -->
-                    <div id="jobsEmptyState" style="display: none; text-align: center; padding: 40px 20px; background: rgba(30, 41, 59, 0.4); border-radius: 12px; border: 1px dashed rgba(255,255,255,0.15); margin-top: 20px;">
-                        <i class="fas fa-compass fa-3x" style="color: var(--accent); margin-bottom: 15px; opacity: 0.8;"></i>
-                        <h4 id="jobsEmptyTitle" style="color: var(--text-light); margin-bottom: 8px;">No Openings in this Track Yet</h4>
-                        <p id="jobsEmptyMsg" style="color: var(--text-muted); font-size: 0.9rem; max-width: 500px; margin: 0 auto 20px auto;">
-                            We don't currently have active listings for this role, but your skills align with several related career paths!
-                        </p>
-                        <div id="jobsEmptySuggestions" style="display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;"></div>
+                    <!-- ============================================== -->
+                    <!-- SECTION 1: RESUME-BASED JOB SUGGESTIONS        -->
+                    <!-- ============================================== -->
+                    <div id="sectionSuggestions" class="jobs-sub-section">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
+                            <div>
+                                <h4 style="margin: 0 0 4px 0; color: var(--text-light); font-size: 1.12rem; display: flex; align-items: center; gap: 8px;">
+                                    <i class="fas fa-magic" style="color: #60a5fa;"></i> Resume-Matched Suggestions
+                                </h4>
+                                <p style="margin: 0; color: var(--text-muted); font-size: 0.84rem;">
+                                    Jobs specifically selected for your uploaded resume, academic background, and verified technical skills.
+                                </p>
+                            </div>
+                            {% if other_roles %}
+                            <button type="button" class="btn btn-outline btn-sm" onclick="switchJobsSubTab('explore')" style="font-size: 0.8rem; border-color: rgba(255,255,255,0.2); color: #cbd5e1;">
+                                <i class="fas fa-compass"></i> Explore Other Roles ({{ other_roles|length }})
+                            </button>
+                            {% endif %}
+                        </div>
+
+                        {% if not has_resume %}
+                            <!-- Missing Resume Notice -->
+                            <div id="suggestionsNoResumePrompt" style="text-align: center; padding: 42px 25px; background: rgba(30, 41, 59, 0.45); border-radius: 12px; border: 1px dashed rgba(96, 165, 250, 0.4); margin-bottom: 20px;">
+                                <i class="fas fa-file-arrow-up fa-3x" style="color: var(--accent); margin-bottom: 14px;"></i>
+                                <h4 style="color: var(--text-light); margin-bottom: 8px;">Upload Your Resume for Personalized Suggestions</h4>
+                                <p style="color: var(--text-muted); font-size: 0.88rem; max-width: 520px; margin: 0 auto 18px auto; line-height: 1.5;">
+                                    Upload your resume in PDF or DOCX format to receive tailored recommendations matching your exact technical skills, projects, and academic qualifications.
+                                </p>
+                                <div style="display: flex; justify-content: center; gap: 12px; flex-wrap: wrap;">
+                                    <button type="button" class="btn btn-primary" onclick="showSection('profile')">
+                                        <i class="fas fa-upload"></i> Upload Resume in Profile
+                                    </button>
+                                    <button type="button" class="btn btn-outline" onclick="switchJobsSubTab('explore')" style="border: 1px solid rgba(255,255,255,0.2); color: #cbd5e1;">
+                                        <i class="fas fa-compass"></i> Browse Other Roles
+                                    </button>
+                                </div>
+                            </div>
+                        {% elif suggested_jobs %}
+                            <div id="suggestionsGridContainer" class="recommendations-grid">
+                                {% for job in suggested_jobs %}
+                                <div class="job-card" id="job_card_{{ job.id }}">
+                                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; flex-wrap: wrap; gap: 6px;">
+                                        <span class="match-badge" style="position: static; display: inline-block;">{{ job.match_score }}% Match</span>
+                                        <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
+                                            {% if job.is_fresher_friendly %}
+                                                <span style="background: rgba(16, 185, 129, 0.15); color: #6ee7b7; border: 1px solid rgba(16, 185, 129, 0.35); padding: 2px 8px; border-radius: 10px; font-size: 0.72rem; font-weight: 600;">
+                                                    <i class="fas fa-graduation-cap"></i> Fresher Friendly
+                                                </span>
+                                            {% endif %}
+                                            {% if job.is_external %}
+                                                <span style="background: rgba(37, 99, 235, 0.2); color: #93c5fd; border: 1px solid rgba(59, 130, 246, 0.4); padding: 2px 8px; border-radius: 10px; font-size: 0.72rem; font-weight: 600;">
+                                                    <i class="fas fa-external-link-alt"></i> {{ job.source }}
+                                                </span>
+                                            {% else %}
+                                                <span style="background: rgba(148, 163, 184, 0.15); color: #cbd5e1; border: 1px solid rgba(148, 163, 184, 0.3); padding: 2px 8px; border-radius: 10px; font-size: 0.72rem; font-weight: 600;">
+                                                    <i class="fas fa-building"></i> Portal Role
+                                                </span>
+                                            {% endif %}
+                                            {% if job.applied %}
+                                                <span class="badge-applied" id="badge_applied_{{ job.id }}" style="background: rgba(34, 197, 94, 0.2); color: #86efac; border: 1px solid rgba(34, 197, 94, 0.4); padding: 2px 8px; border-radius: 10px; font-size: 0.72rem; font-weight: 600;">
+                                                    <i class="fas fa-check-circle"></i> Applied
+                                                </span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <h4 style="margin: 6px 0 4px 0; color: var(--text-light); font-size: 1.05rem;">{{ job.title }}</h4>
+                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-size: 0.85rem;">
+                                        <span style="color: var(--accent); font-weight: 500;">🏢 {{ job.company }}</span>
+                                        <span style="color: var(--text-muted); font-size: 0.78rem;"><i class="fas fa-map-marker-alt"></i> {{ job.location or 'India' }}</span>
+                                    </div>
+                                    <p style="font-size: 0.84rem; color: #cbd5e1; line-height: 1.4; margin-bottom: 10px;">{{ job.description[:130] }}{{ '...' if job.description|length > 130 else '' }}</p>
+
+                                    <!-- Required Skills -->
+                                    {% if job.required_skills %}
+                                    <div style="font-size: 0.75rem; color: #94a3b8; margin-bottom: 10px;">
+                                        <strong style="color: #cbd5e1;">Required Skills:</strong> {{ job.required_skills }}
+                                    </div>
+                                    {% endif %}
+
+                                    <!-- Skill Compatibility Analysis -->
+                                    <div class="skill-analysis" style="margin: 10px 0; padding: 10px 12px; background: rgba(15, 23, 42, 0.6); border-radius: 8px; border-left: 3px solid var(--accent);">
+                                        <div style="font-size: 0.72rem; font-weight: 700; color: var(--accent); margin-bottom: 6px; letter-spacing: 0.5px;">RESUME SKILL MATCH</div>
+                                        {% if job.matched_skills %}
+                                            <div style="margin-bottom: 5px; display: flex; flex-wrap: wrap; gap: 4px;">
+                                                {% for ms in job.matched_skills[:4] %}
+                                                    <span style="background: rgba(34, 197, 94, 0.15); color: #86efac; border: 1px solid rgba(34,197,94,0.3); font-size: 0.72rem; padding: 1px 6px; border-radius: 4px;">✓ {{ ms }}</span>
+                                                {% endfor %}
+                                            </div>
+                                        {% endif %}
+                                        {% if job.missing_skills %}
+                                            <div style="display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 6px;">
+                                                {% for us in job.missing_skills[:3] %}
+                                                    <span style="background: rgba(245, 158, 11, 0.15); color: #fde047; border: 1px solid rgba(245,158,11,0.3); font-size: 0.72rem; padding: 1px 6px; border-radius: 4px;">+ {{ us }}</span>
+                                                {% endfor %}
+                                            </div>
+                                        {% endif %}
+                                        <div style="font-size: 0.74rem; color: #cbd5e1; margin-top: 4px; line-height: 1.35;">
+                                            <i class="fas fa-check" style="color: #86efac; margin-right: 4px;"></i> {{ job.match_reason }}
+                                        </div>
+                                    </div>
+
+                                    <!-- Application Action Button -->
+                                    <div style="margin-top: 14px; display: flex; gap: 8px;">
+                                        {% if job.applied %}
+                                            <button type="button" class="btn btn-secondary" disabled style="width: 100%; justify-content: center; background: rgba(34, 197, 94, 0.15); border: 1px solid rgba(34, 197, 94, 0.4); color: #86efac; font-size: 0.82rem; cursor: default;">
+                                                <i class="fas fa-check-double"></i> Applied on {{ job.applied_at[:10] if job.applied_at else 'Portal' }}
+                                            </button>
+                                        {% elif job.is_external and job.application_link %}
+                                            <a href="{{ job.application_link }}" target="_blank" rel="noopener noreferrer" class="btn btn-primary" style="flex: 1; justify-content: center; font-size: 0.84rem; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+                                                <i class="fas fa-external-link-alt"></i> Apply Now
+                                            </a>
+                                            <button type="button" onclick="recordExternalApplication('{{ job.id }}', '{{ job.title|replace('\'', '\\\'') }}', '{{ job.company|replace('\'', '\\\'') }}')" class="btn btn-outline" style="border: 1px solid rgba(255,255,255,0.2); color: var(--accent); padding: 8px 12px; font-size: 0.8rem; border-radius: 8px;" title="Mark as Applied on Portal">
+                                                <i class="fas fa-check"></i> Track
+                                            </button>
+                                        {% else %}
+                                            <button type="button" id="btn_apply_job_{{ job.id }}" onclick="openApplyJobModal('{{ job.id }}', '{{ job.title|replace('\'', '\\\'') }}', '{{ job.company|replace('\'', '\\\'') }}')" class="btn btn-primary" style="flex: 1; justify-content: center; font-size: 0.84rem;">
+                                                <i class="fas fa-paper-plane"></i> Apply via Portal
+                                            </button>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <!-- No Suitable Matches Notice -->
+                            <div id="suggestionsEmptyNotice" style="text-align: center; padding: 40px 20px; background: rgba(30, 41, 59, 0.4); border-radius: 12px; border: 1px dashed rgba(255,255,255,0.15); margin-bottom: 20px;">
+                                <i class="fas fa-search-minus fa-3x" style="color: #fde047; margin-bottom: 14px;"></i>
+                                <h4 style="color: var(--text-light); margin-bottom: 8px;">No Direct Resume Matches in this Track</h4>
+                                <p style="color: var(--text-muted); font-size: 0.88rem; max-width: 520px; margin: 0 auto 18px auto;">
+                                    We couldn't find openings directly matching your specific resume skills in this filter. You can explore all other industry roles below or add skills to your profile.
+                                </p>
+                                <button type="button" class="btn btn-primary" onclick="switchJobsSubTab('explore')">
+                                    <i class="fas fa-compass"></i> Explore Other Roles ({{ other_roles|length }} Available)
+                                </button>
+                            </div>
+                        {% endif %}
+
+                        <!-- Dynamic Client-side Empty State for Suggestions (used by AJAX filter) -->
+                        <div id="suggestionsEmptyState" style="display: none; text-align: center; padding: 40px 20px; background: rgba(30, 41, 59, 0.4); border-radius: 12px; border: 1px dashed rgba(255,255,255,0.15); margin-top: 20px;">
+                            <i class="fas fa-compass fa-3x" style="color: var(--accent); margin-bottom: 14px; opacity: 0.85;"></i>
+                            <h4 id="suggestionsEmptyTitle" style="color: var(--text-light); margin-bottom: 8px;">No Direct Matches in this Track</h4>
+                            <p id="suggestionsEmptyMsg" style="color: var(--text-muted); font-size: 0.88rem; max-width: 500px; margin: 0 auto 18px auto;">
+                                We don't currently have active resume-matched listings in this track. Check out other available roles!
+                            </p>
+                            <button type="button" class="btn btn-primary" onclick="switchJobsSubTab('explore')">
+                                <i class="fas fa-compass"></i> Explore Other Roles
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- ============================================== -->
+                    <!-- SECTION 2: EXPLORE OTHER ROLES                 -->
+                    <!-- ============================================== -->
+                    <div id="sectionExploreOther" class="jobs-sub-section" style="display: none;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
+                            <div>
+                                <h4 style="margin: 0 0 4px 0; color: var(--text-light); font-size: 1.12rem; display: flex; align-items: center; gap: 8px;">
+                                    <i class="fas fa-compass" style="color: #38bdf8;"></i> Explore Other Career Roles
+                                </h4>
+                                <p style="margin: 0; color: var(--text-muted); font-size: 0.84rem;">
+                                    Alternative career opportunities and emerging roles beyond your primary resume match. Review the skill gap recommendations to qualify.
+                                </p>
+                            </div>
+                            <button type="button" class="btn btn-outline btn-sm" onclick="switchJobsSubTab('suggestions')" style="font-size: 0.8rem; border-color: rgba(96,165,250,0.3); color: var(--accent);">
+                                <i class="fas fa-sparkles"></i> Back to Resume Suggestions ({{ (suggested_jobs|length) if suggested_jobs else 0 }})
+                            </button>
+                        </div>
+
+                        {% if other_roles %}
+                            <div id="exploreGridContainer" class="recommendations-grid">
+                                {% for job in other_roles %}
+                                <div class="job-card" id="job_card_{{ job.id }}">
+                                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; flex-wrap: wrap; gap: 6px;">
+                                        <span class="match-badge" style="position: static; display: inline-block; background: rgba(148, 163, 184, 0.2); color: #cbd5e1; border-color: rgba(148, 163, 184, 0.35);">{{ job.match_score }}% Alignment</span>
+                                        <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
+                                            {% if job.is_fresher_friendly %}
+                                                <span style="background: rgba(16, 185, 129, 0.15); color: #6ee7b7; border: 1px solid rgba(16, 185, 129, 0.35); padding: 2px 8px; border-radius: 10px; font-size: 0.72rem; font-weight: 600;">
+                                                    <i class="fas fa-graduation-cap"></i> Fresher Friendly
+                                                </span>
+                                            {% endif %}
+                                            {% if job.is_external %}
+                                                <span style="background: rgba(37, 99, 235, 0.2); color: #93c5fd; border: 1px solid rgba(59, 130, 246, 0.4); padding: 2px 8px; border-radius: 10px; font-size: 0.72rem; font-weight: 600;">
+                                                    <i class="fas fa-external-link-alt"></i> {{ job.source }}
+                                                </span>
+                                            {% else %}
+                                                <span style="background: rgba(148, 163, 184, 0.15); color: #cbd5e1; border: 1px solid rgba(148, 163, 184, 0.3); padding: 2px 8px; border-radius: 10px; font-size: 0.72rem; font-weight: 600;">
+                                                    <i class="fas fa-building"></i> Portal Role
+                                                </span>
+                                            {% endif %}
+                                            {% if job.applied %}
+                                                <span class="badge-applied" id="badge_applied_{{ job.id }}" style="background: rgba(34, 197, 94, 0.2); color: #86efac; border: 1px solid rgba(34, 197, 94, 0.4); padding: 2px 8px; border-radius: 10px; font-size: 0.72rem; font-weight: 600;">
+                                                    <i class="fas fa-check-circle"></i> Applied
+                                                </span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <h4 style="margin: 6px 0 4px 0; color: var(--text-light); font-size: 1.05rem;">{{ job.title }}</h4>
+                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-size: 0.85rem;">
+                                        <span style="color: var(--accent); font-weight: 500;">🏢 {{ job.company }}</span>
+                                        <span style="color: var(--text-muted); font-size: 0.78rem;"><i class="fas fa-map-marker-alt"></i> {{ job.location or 'India' }}</span>
+                                    </div>
+                                    <p style="font-size: 0.84rem; color: #cbd5e1; line-height: 1.4; margin-bottom: 10px;">{{ job.description[:130] }}{{ '...' if job.description|length > 130 else '' }}</p>
+
+                                    <!-- Required Skills -->
+                                    {% if job.required_skills %}
+                                    <div style="font-size: 0.75rem; color: #94a3b8; margin-bottom: 10px;">
+                                        <strong style="color: #cbd5e1;">Required Skills:</strong> {{ job.required_skills }}
+                                    </div>
+                                    {% endif %}
+
+                                    <!-- Skill Development Gap Box -->
+                                    <div class="skill-gap-box" style="margin: 10px 0; padding: 10px 12px; background: rgba(30, 41, 59, 0.7); border-radius: 8px; border-left: 3px solid #f59e0b;">
+                                        <div style="font-size: 0.72rem; font-weight: 700; color: #fde047; margin-bottom: 5px; letter-spacing: 0.5px;">
+                                            <i class="fas fa-lightbulb"></i> SKILLS TO DEVELOP FOR THIS ROLE
+                                        </div>
+                                        {% if job.missing_skills %}
+                                            <div style="display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 6px;">
+                                                {% for us in job.missing_skills[:4] %}
+                                                    <span style="background: rgba(245, 158, 11, 0.15); color: #fde047; border: 1px solid rgba(245,158,11,0.3); font-size: 0.72rem; padding: 1px 6px; border-radius: 4px;">+ {{ us }}</span>
+                                                {% endfor %}
+                                            </div>
+                                        {% endif %}
+                                        <div style="font-size: 0.74rem; color: #cbd5e1; line-height: 1.35;">
+                                            {{ job.other_reason or 'Requires developing additional skills to qualify for this career track.' }}
+                                        </div>
+                                    </div>
+
+                                    <!-- Application Action Button -->
+                                    <div style="margin-top: 14px; display: flex; gap: 8px;">
+                                        {% if job.applied %}
+                                            <button type="button" class="btn btn-secondary" disabled style="width: 100%; justify-content: center; background: rgba(34, 197, 94, 0.15); border: 1px solid rgba(34, 197, 94, 0.4); color: #86efac; font-size: 0.82rem; cursor: default;">
+                                                <i class="fas fa-check-double"></i> Applied on {{ job.applied_at[:10] if job.applied_at else 'Portal' }}
+                                            </button>
+                                        {% elif job.is_external and job.application_link %}
+                                            <a href="{{ job.application_link }}" target="_blank" rel="noopener noreferrer" class="btn btn-primary" style="flex: 1; justify-content: center; font-size: 0.84rem; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+                                                <i class="fas fa-external-link-alt"></i> Apply Now
+                                            </a>
+                                            <button type="button" onclick="recordExternalApplication('{{ job.id }}', '{{ job.title|replace('\'', '\\\'') }}', '{{ job.company|replace('\'', '\\\'') }}')" class="btn btn-outline" style="border: 1px solid rgba(255,255,255,0.2); color: var(--accent); padding: 8px 12px; font-size: 0.8rem; border-radius: 8px;" title="Mark as Applied on Portal">
+                                                <i class="fas fa-check"></i> Track
+                                            </button>
+                                        {% else %}
+                                            <button type="button" id="btn_apply_job_{{ job.id }}" onclick="openApplyJobModal('{{ job.id }}', '{{ job.title|replace('\'', '\\\'') }}', '{{ job.company|replace('\'', '\\\'') }}')" class="btn btn-primary" style="flex: 1; justify-content: center; font-size: 0.84rem;">
+                                                <i class="fas fa-paper-plane"></i> Apply via Portal
+                                            </button>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="text-center" style="padding: 40px; color: var(--text-muted);">
+                                <i class="fas fa-check-circle fa-3x" style="color: #22c55e; margin-bottom: 12px;"></i>
+                                <p>All available positions in this category are already in your Suggestions tab!</p>
+                            </div>
+                        {% endif %}
+
+                        <!-- Dynamic Client-side Empty State for Explore -->
+                        <div id="exploreEmptyState" style="display: none; text-align: center; padding: 40px 20px; background: rgba(30, 41, 59, 0.4); border-radius: 12px; border: 1px dashed rgba(255,255,255,0.15); margin-top: 20px;">
+                            <i class="fas fa-folder-open fa-3x" style="color: var(--text-muted); margin-bottom: 14px;"></i>
+                            <h4 style="color: var(--text-light); margin-bottom: 8px;">No Additional Roles in this Track</h4>
+                            <p style="color: var(--text-muted); font-size: 0.88rem;">All active opportunities in this category match your resume in Suggestions.</p>
+                        </div>
                     </div>
                 {% endif %}
             </div>
@@ -4201,54 +4387,95 @@
         // CAREER ROLE FILTERING & RECOMMENDATIONS
         // ==========================================
         let currentCareerRole = 'all';
+        let currentJobsSubTab = 'suggestions';
+
+        function switchJobsSubTab(tab) {
+            currentJobsSubTab = tab;
+            const secSug = document.getElementById('sectionSuggestions');
+            const secExp = document.getElementById('sectionExploreOther');
+            const btnSug = document.getElementById('tabBtnSuggestions');
+            const btnExp = document.getElementById('tabBtnExplore');
+
+            if (tab === 'suggestions') {
+                if (secSug) secSug.style.display = 'block';
+                if (secExp) secExp.style.display = 'none';
+                if (btnSug) btnSug.classList.add('active');
+                if (btnExp) btnExp.classList.remove('active');
+            } else {
+                if (secSug) secSug.style.display = 'none';
+                if (secExp) secExp.style.display = 'block';
+                if (btnSug) btnSug.classList.remove('active');
+                if (btnExp) btnExp.classList.add('active');
+            }
+        }
 
         async function filterCareerRoles(role, tabBtn) {
             currentCareerRole = role;
 
-            // Update Tab UI
+            // Update Role Tab UI
             document.querySelectorAll('.role-track-tab').forEach(b => b.classList.remove('active'));
             if (tabBtn) tabBtn.classList.add('active');
 
-            const grid = document.getElementById('jobsGridContainer');
-            const emptyState = document.getElementById('jobsEmptyState');
-            if (!grid) return;
+            const sugGrid = document.getElementById('suggestionsGridContainer');
+            const expGrid = document.getElementById('exploreGridContainer');
+            const sugEmpty = document.getElementById('suggestionsEmptyState');
+            const sugNotice = document.getElementById('suggestionsEmptyNotice');
+            const expEmpty = document.getElementById('exploreEmptyState');
 
-            // Loading state
-            grid.style.opacity = '0.5';
+            if (sugGrid) sugGrid.style.opacity = '0.5';
+            if (expGrid) expGrid.style.opacity = '0.5';
 
             try {
                 const response = await fetch(`/get_career_recommendations?role=${encodeURIComponent(role)}`);
                 const data = await response.json();
 
-                grid.style.opacity = '1';
+                if (sugGrid) sugGrid.style.opacity = '1';
+                if (expGrid) expGrid.style.opacity = '1';
 
-                if (!data.success || !data.jobs || data.jobs.length === 0) {
-                    grid.innerHTML = '';
-                    if (emptyState) {
-                        document.getElementById('jobsEmptyTitle').textContent = `No Active Openings in this Track (${role})`;
-                        document.getElementById('jobsEmptyMsg').textContent = `We don't currently have active listings for this role, but your skills align with several related career tracks!`;
-
-                        const suggestionsDiv = document.getElementById('jobsEmptySuggestions');
-                        if (suggestionsDiv && data.related_tracks && data.related_tracks.length > 0) {
-                            suggestionsDiv.innerHTML = data.related_tracks.map(t => `
-                                <button type="button" class="btn btn-sm btn-outline" onclick="selectRoleTrack('${t.track}')" style="background: rgba(37,99,235,0.15); color: var(--accent); border: 1px solid rgba(96,165,250,0.3); padding: 6px 14px; border-radius: 8px; cursor: pointer;">
-                                    ${escapeHtml(t.label)} (${t.top_match}% Match)
-                                </button>
-                            `).join('');
-                        }
-                        emptyState.style.display = 'block';
-                    }
+                if (!data.success) {
                     return;
                 }
 
-                if (emptyState) emptyState.style.display = 'none';
+                // Update counts on subtab buttons
+                const sugCountPill = document.getElementById('pill_suggestions_count');
+                const expCountPill = document.getElementById('pill_explore_count');
+                const sugJobs = data.suggestions || [];
+                const expJobs = data.other_roles || [];
 
-                // Render dynamic job cards
-                grid.innerHTML = data.jobs.map(job => renderSingleJobCard(job)).join('');
+                if (sugCountPill) sugCountPill.textContent = sugJobs.length;
+                if (expCountPill) expCountPill.textContent = expJobs.length;
+
+                // Render Suggestions
+                if (sugGrid) {
+                    if (sugJobs.length > 0) {
+                        sugGrid.innerHTML = sugJobs.map(job => renderSingleJobCard(job, true)).join('');
+                        sugGrid.style.display = 'grid';
+                        if (sugEmpty) sugEmpty.style.display = 'none';
+                        if (sugNotice) sugNotice.style.display = 'none';
+                    } else {
+                        sugGrid.innerHTML = '';
+                        sugGrid.style.display = 'none';
+                        if (sugEmpty) sugEmpty.style.display = 'block';
+                    }
+                }
+
+                // Render Explore Other Roles
+                if (expGrid) {
+                    if (expJobs.length > 0) {
+                        expGrid.innerHTML = expJobs.map(job => renderSingleJobCard(job, false)).join('');
+                        expGrid.style.display = 'grid';
+                        if (expEmpty) expEmpty.style.display = 'none';
+                    } else {
+                        expGrid.innerHTML = '';
+                        expGrid.style.display = 'none';
+                        if (expEmpty) expEmpty.style.display = 'block';
+                    }
+                }
 
             } catch (err) {
                 console.error("Error filtering jobs:", err);
-                grid.style.opacity = '1';
+                if (sugGrid) sugGrid.style.opacity = '1';
+                if (expGrid) expGrid.style.opacity = '1';
             }
         }
 
@@ -4259,29 +4486,124 @@
             }
         }
 
-        function renderSingleJobCard(job) {
+        function renderSingleJobCard(job, isSuggestion) {
             const safeTitle = escapeHtml(job.title).replace(/'/g, "\\'");
             const safeCompany = escapeHtml(job.company).replace(/'/g, "\\'");
+
+            const matchBadge = isSuggestion ? 
+                `<span class="match-badge" style="position: static; display: inline-block;">${job.match_score}% Match</span>` :
+                `<span class="match-badge" style="position: static; display: inline-block; background: rgba(148, 163, 184, 0.2); color: #cbd5e1; border-color: rgba(148, 163, 184, 0.35);">${job.match_score}% Alignment</span>`;
+
+            const fresherBadge = job.is_fresher_friendly ? `
+                <span style="background: rgba(16, 185, 129, 0.15); color: #6ee7b7; border: 1px solid rgba(16, 185, 129, 0.35); padding: 2px 8px; border-radius: 10px; font-size: 0.72rem; font-weight: 600;">
+                    <i class="fas fa-graduation-cap"></i> Fresher Friendly
+                </span>
+            ` : '';
+
+            const sourceBadge = job.is_external ? `
+                <span style="background: rgba(37, 99, 235, 0.2); color: #93c5fd; border: 1px solid rgba(59, 130, 246, 0.4); padding: 2px 8px; border-radius: 10px; font-size: 0.72rem; font-weight: 600;">
+                    <i class="fas fa-external-link-alt"></i> ${escapeHtml(job.source || 'External')}
+                </span>
+            ` : `
+                <span style="background: rgba(148, 163, 184, 0.15); color: #cbd5e1; border: 1px solid rgba(148, 163, 184, 0.3); padding: 2px 8px; border-radius: 10px; font-size: 0.72rem; font-weight: 600;">
+                    <i class="fas fa-building"></i> Portal Role
+                </span>
+            `;
+
+            const appliedBadge = job.applied ? `
+                <span class="badge-applied" id="badge_applied_${job.id}" style="background: rgba(34, 197, 94, 0.2); color: #86efac; border: 1px solid rgba(34, 197, 94, 0.4); padding: 2px 8px; border-radius: 10px; font-size: 0.72rem; font-weight: 600;">
+                    <i class="fas fa-check-circle"></i> Applied
+                </span>
+            ` : '';
+
+            const reqSkillsHtml = job.required_skills ? `
+                <div style="font-size: 0.75rem; color: #94a3b8; margin-bottom: 10px;">
+                    <strong style="color: #cbd5e1;">Required Skills:</strong> ${escapeHtml(job.required_skills)}
+                </div>
+            ` : '';
+
+            let detailsBoxHtml = '';
+            if (isSuggestion) {
+                const matchedChips = (job.matched_skills && job.matched_skills.length > 0) ? `
+                    <div style="margin-bottom: 5px; display: flex; flex-wrap: wrap; gap: 4px;">
+                        ${job.matched_skills.slice(0, 4).map(ms => `
+                            <span style="background: rgba(34, 197, 94, 0.15); color: #86efac; border: 1px solid rgba(34,197,94,0.3); font-size: 0.72rem; padding: 1px 6px; border-radius: 4px;">✓ ${escapeHtml(ms)}</span>
+                        `).join('')}
+                    </div>
+                ` : '';
+
+                const missingChips = (job.missing_skills && job.missing_skills.length > 0) ? `
+                    <div style="display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 6px;">
+                        ${job.missing_skills.slice(0, 3).map(us => `
+                            <span style="background: rgba(245, 158, 11, 0.15); color: #fde047; border: 1px solid rgba(245,158,11,0.3); font-size: 0.72rem; padding: 1px 6px; border-radius: 4px;">+ ${escapeHtml(us)}</span>
+                        `).join('')}
+                    </div>
+                ` : '';
+
+                detailsBoxHtml = `
+                    <div class="skill-analysis" style="margin: 10px 0; padding: 10px 12px; background: rgba(15, 23, 42, 0.6); border-radius: 8px; border-left: 3px solid var(--accent);">
+                        <div style="font-size: 0.72rem; font-weight: 700; color: var(--accent); margin-bottom: 6px; letter-spacing: 0.5px;">RESUME SKILL MATCH</div>
+                        ${matchedChips}
+                        ${missingChips}
+                        <div style="font-size: 0.74rem; color: #cbd5e1; margin-top: 4px; line-height: 1.35;">
+                            <i class="fas fa-check" style="color: #86efac; margin-right: 4px;"></i> ${escapeHtml(job.match_reason || '')}
+                        </div>
+                    </div>
+                `;
+            } else {
+                const missingChips = (job.missing_skills && job.missing_skills.length > 0) ? `
+                    <div style="display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 6px;">
+                        ${job.missing_skills.slice(0, 4).map(us => `
+                            <span style="background: rgba(245, 158, 11, 0.15); color: #fde047; border: 1px solid rgba(245,158,11,0.3); font-size: 0.72rem; padding: 1px 6px; border-radius: 4px;">+ ${escapeHtml(us)}</span>
+                        `).join('')}
+                    </div>
+                ` : '';
+
+                detailsBoxHtml = `
+                    <div class="skill-gap-box" style="margin: 10px 0; padding: 10px 12px; background: rgba(30, 41, 59, 0.7); border-radius: 8px; border-left: 3px solid #f59e0b;">
+                        <div style="font-size: 0.72rem; font-weight: 700; color: #fde047; margin-bottom: 5px; letter-spacing: 0.5px;">
+                            <i class="fas fa-lightbulb"></i> SKILLS TO DEVELOP FOR THIS ROLE
+                        </div>
+                        ${missingChips}
+                        <div style="font-size: 0.74rem; color: #cbd5e1; line-height: 1.35;">
+                            ${escapeHtml(job.other_reason || 'Requires developing additional skills to qualify for this career track.')}
+                        </div>
+                    </div>
+                `;
+            }
+
+            let actionBtnHtml = '';
+            if (job.applied) {
+                actionBtnHtml = `
+                    <button type="button" class="btn btn-secondary" disabled style="width: 100%; justify-content: center; background: rgba(34, 197, 94, 0.15); border: 1px solid rgba(34, 197, 94, 0.4); color: #86efac; font-size: 0.82rem; cursor: default;">
+                        <i class="fas fa-check-double"></i> Applied on ${escapeHtml((job.applied_at || 'Portal').substring(0, 10))}
+                    </button>
+                `;
+            } else if (job.is_external && job.application_link) {
+                actionBtnHtml = `
+                    <a href="${escapeHtml(job.application_link)}" target="_blank" rel="noopener noreferrer" class="btn btn-primary" style="flex: 1; justify-content: center; font-size: 0.84rem; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+                        <i class="fas fa-external-link-alt"></i> Apply Now
+                    </a>
+                    <button type="button" onclick="recordExternalApplication('${job.id}', '${safeTitle}', '${safeCompany}')" class="btn btn-outline" style="border: 1px solid rgba(255,255,255,0.2); color: var(--accent); padding: 8px 12px; font-size: 0.8rem; border-radius: 8px;" title="Mark as Applied on Portal">
+                        <i class="fas fa-check"></i> Track
+                    </button>
+                `;
+            } else {
+                actionBtnHtml = `
+                    <button type="button" id="btn_apply_job_${job.id}" onclick="openApplyJobModal('${job.id}', '${safeTitle}', '${safeCompany}')" class="btn btn-primary" style="flex: 1; justify-content: center; font-size: 0.84rem;">
+                        <i class="fas fa-paper-plane"></i> Apply via Portal
+                    </button>
+                `;
+            }
 
             return `
                 <div class="job-card" id="job_card_${job.id}">
                     <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; flex-wrap: wrap; gap: 6px;">
-                        <span class="match-badge" style="position: static; display: inline-block;">${job.match_score}% Match</span>
+                        ${matchBadge}
                         <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
-                            ${job.is_external ? `
-                                <span style="background: rgba(37, 99, 235, 0.2); color: #93c5fd; border: 1px solid rgba(59, 130, 246, 0.4); padding: 2px 8px; border-radius: 10px; font-size: 0.72rem; font-weight: 600;">
-                                    <i class="fas fa-external-link-alt"></i> ${escapeHtml(job.source || 'Verified External')}
-                                </span>
-                            ` : `
-                                <span style="background: rgba(148, 163, 184, 0.15); color: #cbd5e1; border: 1px solid rgba(148, 163, 184, 0.3); padding: 2px 8px; border-radius: 10px; font-size: 0.72rem; font-weight: 600;">
-                                    <i class="fas fa-building"></i> Portal Role
-                                </span>
-                            `}
-                            ${job.applied ? `
-                                <span class="badge-applied" id="badge_applied_${job.id}" style="background: rgba(34, 197, 94, 0.2); color: #86efac; border: 1px solid rgba(34, 197, 94, 0.4); padding: 2px 8px; border-radius: 10px; font-size: 0.72rem; font-weight: 600;">
-                                    <i class="fas fa-check-circle"></i> Applied
-                                </span>
-                            ` : ''}
+                            ${fresherBadge}
+                            ${sourceBadge}
+                            ${appliedBadge}
                         </div>
                     </div>
                     <h4 style="margin: 6px 0 4px 0; color: var(--text-light); font-size: 1.05rem;">${escapeHtml(job.title)}</h4>
@@ -4289,48 +4611,11 @@
                         <span style="color: var(--accent); font-weight: 500;">🏢 ${escapeHtml(job.company)}</span>
                         <span style="color: var(--text-muted); font-size: 0.78rem;"><i class="fas fa-map-marker-alt"></i> ${escapeHtml(job.location || 'India')}</span>
                     </div>
-                    <p style="font-size: 0.84rem; color: #cbd5e1; line-height: 1.4; margin-bottom: 12px;">${escapeHtml(job.description.substring(0, 130))}${job.description.length > 130 ? '...' : ''}</p>
-
-                    <!-- Skill Compatibility Analysis -->
-                    <div class="skill-analysis" style="margin: 12px 0; padding: 10px 12px; background: rgba(15, 23, 42, 0.6); border-radius: 8px; border-left: 3px solid var(--accent);">
-                        <div style="font-size: 0.72rem; font-weight: 700; color: var(--accent); margin-bottom: 6px; letter-spacing: 0.5px;">SKILL COMPATIBILITY</div>
-                        ${job.matched_skills && job.matched_skills.length > 0 ? `
-                            <div style="margin-bottom: 5px; display: flex; flex-wrap: wrap; gap: 4px;">
-                                ${job.matched_skills.slice(0, 4).map(ms => `
-                                    <span style="background: rgba(34, 197, 94, 0.15); color: #86efac; border: 1px solid rgba(34,197,94,0.3); font-size: 0.72rem; padding: 1px 6px; border-radius: 4px;">✓ ${escapeHtml(ms)}</span>
-                                `).join('')}
-                            </div>
-                        ` : ''}
-                        ${job.missing_skills && job.missing_skills.length > 0 ? `
-                            <div style="display: flex; flex-wrap: wrap; gap: 4px;">
-                                ${job.missing_skills.slice(0, 3).map(us => `
-                                    <span style="background: rgba(245, 158, 11, 0.15); color: #fde047; border: 1px solid rgba(245,158,11,0.3); font-size: 0.72rem; padding: 1px 6px; border-radius: 4px;">+ ${escapeHtml(us)}</span>
-                                `).join('')}
-                            </div>
-                        ` : ''}
-                        <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 6px; line-height: 1.3;">
-                            ${escapeHtml(job.match_reason)}
-                        </div>
-                    </div>
-
-                    <!-- Application Action Button -->
+                    <p style="font-size: 0.84rem; color: #cbd5e1; line-height: 1.4; margin-bottom: 10px;">${escapeHtml(job.description.substring(0, 130))}${job.description.length > 130 ? '...' : ''}</p>
+                    ${reqSkillsHtml}
+                    ${detailsBoxHtml}
                     <div style="margin-top: 14px; display: flex; gap: 8px;">
-                        ${job.applied ? `
-                            <button type="button" class="btn btn-secondary" disabled style="width: 100%; justify-content: center; background: rgba(34, 197, 94, 0.15); border: 1px solid rgba(34, 197, 94, 0.4); color: #86efac; font-size: 0.82rem; cursor: default;">
-                                <i class="fas fa-check-double"></i> Applied on ${escapeHtml((job.applied_at || 'Portal').substring(0, 10))}
-                            </button>
-                        ` : (job.is_external && job.application_link) ? `
-                            <a href="${escapeHtml(job.application_link)}" target="_blank" rel="noopener noreferrer" class="btn btn-primary" style="flex: 1; justify-content: center; font-size: 0.84rem; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
-                                <i class="fas fa-external-link-alt"></i> Apply on ${escapeHtml(job.company)}
-                            </a>
-                            <button type="button" onclick="recordExternalApplication('${job.id}', '${safeTitle}', '${safeCompany}')" class="btn btn-outline" style="border: 1px solid rgba(255,255,255,0.2); color: var(--accent); padding: 8px 12px; font-size: 0.8rem; border-radius: 8px;" title="Mark as Applied on Portal">
-                                <i class="fas fa-check"></i> Track
-                            </button>
-                        ` : `
-                            <button type="button" id="btn_apply_job_${job.id}" onclick="openApplyJobModal('${job.id}', '${safeTitle}', '${safeCompany}')" class="btn btn-primary" style="flex: 1; justify-content: center; font-size: 0.84rem;">
-                                <i class="fas fa-paper-plane"></i> Apply via Portal
-                            </button>
-                        `}
+                        ${actionBtnHtml}
                     </div>
                 </div>
             `;
@@ -4697,47 +4982,6 @@
             });
         }
 
-        // PWA Install Prompt
-        let deferredPrompt;
-        const installButton = document.createElement('button');
-        installButton.innerHTML = '<i class="fas fa-download"></i> Install App';
-        installButton.style.cssText = `
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: #2563eb;
-            color: white;
-            border: none;
-            padding: 12px 20px;
-            border-radius: 25px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
-            display: none;
-            z-index: 1000;
-        `;
-
-        window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
-            deferredPrompt = e;
-            installButton.style.display = 'block';
-            document.body.appendChild(installButton);
-        });
-
-        installButton.addEventListener('click', () => {
-            if (deferredPrompt) {
-                deferredPrompt.prompt();
-                deferredPrompt.userChoice.then((choiceResult) => {
-                    if (choiceResult.outcome === 'accepted') {
-                        console.log('User accepted the install prompt');
-                    }
-                    deferredPrompt = null;
-                    installButton.style.display = 'none';
-                });
-            }
-        });
-
         // ==========================================
         // AI RESUME ANALYZER & PROFILE AUTO-FILL HANDLER
         // ==========================================
@@ -4930,6 +5174,11 @@
                 }
 
                 showResumeAlert(`✓ Resume successfully extracted and analyzed! Auto-filled <strong>${filledCount}</strong> field(s). Review your scores and recommendations below.`, 'success');
+
+                // Refresh resume-based job suggestions and explore other roles dynamically
+                if (typeof filterCareerRoles === 'function') {
+                    filterCareerRoles('all');
+                }
 
                 // Smooth scroll to score dashboard
                 const dashboard = document.getElementById('resumeScoreDashboard');
@@ -6042,6 +6291,65 @@
             .video-category-card {
                 padding: 15px;
             }
+        }
+
+        /* Suggestions & Explore Other Roles Sub-Navigation */
+        .jobs-subnav-container {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 22px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .jobs-mode-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 9px 18px;
+            border-radius: 12px;
+            font-size: 0.88rem;
+            cursor: pointer;
+            background: rgba(30, 41, 59, 0.65);
+            color: #94a3b8;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            transition: all 0.25s ease;
+            user-select: none;
+        }
+
+        .jobs-mode-btn:hover {
+            color: var(--text-light);
+            border-color: rgba(96, 165, 250, 0.4);
+            background: rgba(37, 99, 235, 0.14);
+            transform: translateY(-1px);
+        }
+
+        .jobs-mode-btn.active {
+            background: linear-gradient(135deg, rgba(37, 99, 235, 0.35), rgba(124, 58, 237, 0.3));
+            color: #ffffff;
+            border-color: #60a5fa;
+            font-weight: 600;
+            box-shadow: 0 4px 16px rgba(37, 99, 235, 0.25);
+        }
+
+        .jobs-mode-btn .count-pill {
+            background: rgba(15, 23, 42, 0.7);
+            color: #cbd5e1;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.74rem;
+            font-weight: 700;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .jobs-mode-btn.active .count-pill {
+            background: rgba(96, 165, 250, 0.25);
+            color: #93c5fd;
+            border-color: rgba(96, 165, 250, 0.45);
+        }
+
+        .skill-gap-box {
+            transition: all 0.2s ease;
         }
     </style>
 </body>
