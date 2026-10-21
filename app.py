@@ -27,6 +27,20 @@ from job_recommender import (
     get_recommended_courses_for_student,
     init_extended_jobs_db
 )
+from interview_service import (
+    init_interview_tables,
+    start_interview_session,
+    submit_interview_answer,
+    pause_interview_session,
+    resume_interview_session,
+    finish_interview_session,
+    get_interview_report,
+    get_user_interview_history,
+    delete_interview_session,
+    generate_interview_pdf_report,
+    get_active_ai_provider,
+    get_candidate_interview_context
+)
 
 # Load environment variables
 load_dotenv()
@@ -250,6 +264,10 @@ def init_db():
             init_extended_jobs_db()
         except Exception as ej_err:
             logger.error(f"Error calling init_extended_jobs_db: {ej_err}")
+        try:
+            init_interview_tables()
+        except Exception as ii_err:
+            logger.error(f"Error calling init_interview_tables: {ii_err}")
     except Exception as e:
         logger.error(f"DB Init Error: {e}")
 
@@ -1512,6 +1530,221 @@ def my_applications():
         })
 
     return jsonify({"success": True, "applications": results})
+
+
+# =====================================================================
+# AI LIVE INTERVIEW ROUTES & API ENDPOINTS
+# =====================================================================
+
+@app.route("/api/interview/ai_status", methods=["GET"])
+def api_interview_ai_status():
+    """Returns the current active AI provider engine and user profile context for interview prep."""
+    if not session.get("user_id") or session.get("role") != "student":
+        return jsonify({"success": False, "error": "Unauthorized"}), 401
+    
+    uid = session.get("user_id")
+    provider_name, provider_key = get_active_ai_provider()
+    context = get_candidate_interview_context(uid)
+    
+    return jsonify({
+        "success": True,
+        "provider": provider_name,
+        "provider_key": provider_key,
+        "context": context
+    })
+
+
+@app.route("/api/interview/start", methods=["POST"])
+def api_interview_start():
+    """Initializes a new live interview session with genuine AI opening question."""
+    if not session.get("user_id") or session.get("role") != "student":
+        return jsonify({"success": False, "error": "Unauthorized"}), 401
+
+    uid = session.get("user_id")
+    data = request.get_json(silent=True) or {}
+    
+    role = data.get("role", "Full Stack Developer").strip()
+    interview_type = data.get("interview_type", "technical").strip().lower()
+    difficulty = data.get("difficulty", "intermediate").strip().lower()
+    try:
+        duration_minutes = int(data.get("duration", 10))
+    except (ValueError, TypeError):
+        duration_minutes = 10
+        
+    mode = data.get("mode", "text").strip().lower()
+    target_skills = data.get("skills", "").strip()
+    use_resume = bool(data.get("use_resume", False))
+    
+    # Validation
+    if duration_minutes not in [5, 10, 15, 30]:
+        duration_minutes = 10
+    if interview_type not in ["technical", "hr", "behavioral", "mixed"]:
+        interview_type = "technical"
+    if difficulty not in ["beginner", "intermediate", "advanced"]:
+        difficulty = "intermediate"
+    if mode not in ["text", "voice"]:
+        mode = "text"
+        
+    result = start_interview_session(
+        user_id=uid,
+        role=role,
+        interview_type=interview_type,
+        difficulty=difficulty,
+        duration_minutes=duration_minutes,
+        mode=mode,
+        target_skills=target_skills,
+        use_resume=use_resume
+    )
+    
+    return jsonify(result), (200 if result.get("success") else 400)
+
+
+@app.route("/api/interview/submit_answer", methods=["POST"])
+def api_interview_submit_answer():
+    """Evaluates candidate's answer and returns next adaptive question or finishes interview."""
+    if not session.get("user_id") or session.get("role") != "student":
+        return jsonify({"success": False, "error": "Unauthorized"}), 401
+
+    uid = session.get("user_id")
+    data = request.get_json(silent=True) or {}
+    
+    session_token = data.get("session_token")
+    answer_text = data.get("answer", "").strip()
+    try:
+        duration_seconds = int(data.get("duration_seconds", 0))
+    except (ValueError, TypeError):
+        duration_seconds = 0
+    
+    if not session_token:
+        return jsonify({"success": False, "error": "Session token required"}), 400
+    if not answer_text:
+        return jsonify({"success": False, "error": "Please provide an answer before submitting."}), 400
+        
+    result = submit_interview_answer(
+        user_id=uid,
+        session_token=session_token,
+        answer_text=answer_text,
+        duration_seconds=duration_seconds
+    )
+    
+    return jsonify(result), (200 if result.get("success") else 400)
+
+
+@app.route("/api/interview/pause", methods=["POST"])
+def api_interview_pause():
+    """Pauses an in-progress interview session."""
+    if not session.get("user_id") or session.get("role") != "student":
+        return jsonify({"success": False, "error": "Unauthorized"}), 401
+
+    uid = session.get("user_id")
+    data = request.get_json(silent=True) or {}
+    session_token = data.get("session_token")
+    
+    if not session_token:
+        return jsonify({"success": False, "error": "Session token required"}), 400
+        
+    result = pause_interview_session(uid, session_token)
+    return jsonify(result)
+
+
+@app.route("/api/interview/resume", methods=["POST"])
+def api_interview_resume():
+    """Resumes an in-progress or paused interview session."""
+    if not session.get("user_id") or session.get("role") != "student":
+        return jsonify({"success": False, "error": "Unauthorized"}), 401
+
+    uid = session.get("user_id")
+    data = request.get_json(silent=True) or {}
+    session_token = data.get("session_token")
+    
+    if not session_token:
+        return jsonify({"success": False, "error": "Session token required"}), 400
+        
+    result = resume_interview_session(uid, session_token)
+    return jsonify(result)
+
+
+@app.route("/api/interview/finish", methods=["POST"])
+def api_interview_finish():
+    """Ends interview early or on timer expiry and generates final report."""
+    if not session.get("user_id") or session.get("role") != "student":
+        return jsonify({"success": False, "error": "Unauthorized"}), 401
+
+    uid = session.get("user_id")
+    data = request.get_json(silent=True) or {}
+    session_token = data.get("session_token")
+    
+    if not session_token:
+        return jsonify({"success": False, "error": "Session token required"}), 400
+        
+    result = finish_interview_session(uid, session_token)
+    return jsonify(result)
+
+
+@app.route("/api/interview/report/<session_token>", methods=["GET"])
+def api_interview_get_report(session_token):
+    """Fetches complete synthesis report and question-by-question breakdown."""
+    if not session.get("user_id") or session.get("role") != "student":
+        return jsonify({"success": False, "error": "Unauthorized"}), 401
+
+    uid = session.get("user_id")
+    result = get_interview_report(uid, session_token)
+    return jsonify(result), (200 if result.get("success") else 404)
+
+
+@app.route("/api/interview/report/<session_token>/pdf", methods=["GET"])
+def api_interview_report_pdf(session_token):
+    """Generates and serves a formatted, branded PDF report for the interview session."""
+    if not session.get("user_id") or session.get("role") != "student":
+        flash("Please log in to download interview reports.", "warning")
+        return redirect(url_for("login"))
+
+    uid = session.get("user_id")
+    rep_res = get_interview_report(uid, session_token)
+    
+    if not rep_res.get("success"):
+        flash("Interview report not found or access denied.", "danger")
+        return redirect(url_for("dashboard"))
+        
+    session_data = rep_res["session_data"]
+    qa_history = rep_res["qa_history"]
+    report_data = rep_res["report"]
+    cand_ctx = get_candidate_interview_context(uid)
+    
+    pdf_bytes = generate_interview_pdf_report(session_data, qa_history, report_data, cand_ctx)
+    
+    safe_role = re.sub(r'[^a-zA-Z0-9_-]', '_', session_data.get('job_role', 'Assessment'))
+    filename = f"SkillMatch_AI_Interview_{safe_role}_{session_token}.pdf"
+    
+    return send_file(
+        io.BytesIO(pdf_bytes),
+        mimetype="application/pdf",
+        as_attachment=True,
+        download_name=filename
+    )
+
+
+@app.route("/api/interview/history", methods=["GET"])
+def api_interview_history():
+    """Returns past interview sessions for the logged-in student."""
+    if not session.get("user_id") or session.get("role") != "student":
+        return jsonify({"success": False, "error": "Unauthorized"}), 401
+
+    uid = session.get("user_id")
+    result = get_user_interview_history(uid)
+    return jsonify(result)
+
+
+@app.route("/api/interview/session/<session_token>", methods=["DELETE"])
+def api_interview_delete_session(session_token):
+    """Deletes an interview session and its Q&A history."""
+    if not session.get("user_id") or session.get("role") != "student":
+        return jsonify({"success": False, "error": "Unauthorized"}), 401
+
+    uid = session.get("user_id")
+    result = delete_interview_session(uid, session_token)
+    return jsonify(result), (200 if result.get("success") else 400)
+
 
 @app.route("/test_email")
 def test_email():

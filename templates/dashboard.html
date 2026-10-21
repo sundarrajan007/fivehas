@@ -2370,6 +2370,585 @@
         .mobile-menu-toggle {
             display: none;
         }
+
+        /* ================================================================= */
+        /* AI LIVE INTERVIEW STYLES (SkillMatch AI)                         */
+        /* ================================================================= */
+        .interview-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .interview-header-card {
+            background: linear-gradient(135deg, rgba(37, 99, 235, 0.15), rgba(124, 58, 237, 0.1));
+            border: 1px solid rgba(96, 165, 250, 0.3);
+            border-radius: 16px;
+            padding: 24px 28px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+            backdrop-filter: blur(12px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+        }
+
+        .interview-subnav {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            background: rgba(15, 23, 42, 0.6);
+            padding: 6px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .interview-subnav-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            border-radius: 8px;
+            border: none;
+            background: transparent;
+            color: var(--text-muted);
+            font-size: 0.88rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .interview-subnav-btn:hover {
+            color: #fff;
+            background: rgba(255, 255, 255, 0.06);
+        }
+
+        .interview-subnav-btn.active {
+            background: var(--primary);
+            color: #fff;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35);
+        }
+
+        /* Preset Cards Grid */
+        .preset-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .preset-card {
+            background: rgba(30, 41, 59, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 14px;
+            padding: 18px 20px;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .preset-card:hover {
+            transform: translateY(-3px);
+            border-color: rgba(96, 165, 250, 0.6);
+            background: rgba(30, 41, 59, 0.95);
+            box-shadow: 0 10px 24px rgba(0, 0, 0, 0.3);
+        }
+
+        .preset-card.selected {
+            border-color: var(--accent);
+            background: linear-gradient(135deg, rgba(37, 99, 235, 0.2), rgba(30, 41, 59, 0.9));
+            box-shadow: 0 0 0 2px rgba(96, 165, 250, 0.4);
+        }
+
+        .preset-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            margin-bottom: 12px;
+        }
+
+        /* Form Controls */
+        .config-card {
+            background: var(--bg-card);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 16px;
+            padding: 28px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
+        }
+
+        .config-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 20px;
+            margin-bottom: 24px;
+        }
+
+        .form-group-custom label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            font-size: 0.9rem;
+            color: #cbd5e1;
+        }
+
+        .form-control-custom {
+            width: 100%;
+            padding: 12px 14px;
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 10px;
+            color: #f8fafc;
+            font-size: 0.92rem;
+            transition: all 0.2s ease;
+        }
+
+        .form-control-custom:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.25);
+        }
+
+        .radio-tile-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .radio-tile-label {
+            flex: 1;
+            min-width: 90px;
+            padding: 10px 14px;
+            background: rgba(15, 23, 42, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            cursor: pointer;
+            text-align: center;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            transition: all 0.2s ease;
+            user-select: none;
+        }
+
+        .radio-tile-input {
+            display: none;
+        }
+
+        .radio-tile-input:checked + .radio-tile-label {
+            background: rgba(37, 99, 235, 0.25);
+            border-color: var(--accent);
+            color: #fff;
+            box-shadow: 0 0 12px rgba(37, 99, 235, 0.3);
+        }
+
+        .badge-clickable {
+            cursor: pointer;
+            display: inline-block;
+            margin: 3px;
+            padding: 5px 11px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 20px;
+            font-size: 0.78rem;
+            color: #cbd5e1;
+            transition: all 0.2s ease;
+        }
+
+        .badge-clickable:hover {
+            background: rgba(37, 99, 235, 0.2);
+            border-color: var(--accent);
+            color: #fff;
+        }
+
+        .badge-clickable.active {
+            background: var(--primary);
+            border-color: var(--accent);
+            color: #fff;
+        }
+
+        /* Live Workspace Layout */
+        .live-workspace-card {
+            background: var(--bg-card);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 16px;
+            padding: 28px;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+            box-shadow: 0 12px 36px rgba(0, 0, 0, 0.3);
+        }
+
+        .live-status-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .timer-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(15, 23, 42, 0.9);
+            border: 1px solid rgba(96, 165, 250, 0.3);
+            border-radius: 10px;
+            padding: 8px 16px;
+            font-family: monospace;
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: #60a5fa;
+            letter-spacing: 1px;
+        }
+
+        .timer-badge.warning {
+            color: #fbbf24;
+            border-color: rgba(251, 191, 36, 0.5);
+            animation: pulseWarning 1s infinite alternate;
+        }
+
+        .timer-badge.danger {
+            color: #f87171;
+            border-color: rgba(248, 113, 113, 0.6);
+            animation: pulseDanger 0.8s infinite alternate;
+        }
+
+        @keyframes pulseWarning {
+            0% { transform: scale(1); }
+            100% { transform: scale(1.03); }
+        }
+
+        @keyframes pulseDanger {
+            0% { transform: scale(1); box-shadow: 0 0 10px rgba(239, 68, 68, 0.3); }
+            100% { transform: scale(1.05); box-shadow: 0 0 18px rgba(239, 68, 68, 0.6); }
+        }
+
+        .question-box {
+            background: linear-gradient(135deg, rgba(15, 23, 42, 0.9), rgba(30, 41, 59, 0.8));
+            border: 1px solid rgba(96, 165, 250, 0.25);
+            border-radius: 14px;
+            padding: 24px;
+            position: relative;
+        }
+
+        .ai-interviewer-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.82rem;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 12px;
+            font-weight: 600;
+        }
+
+        .pulse-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: #22c55e;
+            box-shadow: 0 0 8px #22c55e;
+            display: inline-block;
+        }
+
+        .question-text-display {
+            font-size: 1.18rem;
+            line-height: 1.6;
+            color: #f8fafc;
+            font-weight: 500;
+            margin-bottom: 18px;
+        }
+
+        .audio-playback-bar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            padding-top: 14px;
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        /* Voice Interaction Card */
+        .voice-control-box {
+            background: rgba(15, 23, 42, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 14px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .voice-status-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .btn-mic-record {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 12px 24px;
+            border-radius: 30px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            border: none;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            color: #fff;
+            box-shadow: 0 4px 14px rgba(37, 99, 235, 0.4);
+        }
+
+        .btn-mic-record.recording {
+            background: linear-gradient(135deg, #dc2626, #b91c1c);
+            animation: recordPulse 1.2s infinite;
+            box-shadow: 0 0 20px rgba(220, 38, 38, 0.6);
+        }
+
+        @keyframes recordPulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.04); }
+            100% { transform: scale(1); }
+        }
+
+        .sound-wave {
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+            height: 20px;
+        }
+
+        .sound-wave span {
+            display: inline-block;
+            width: 3px;
+            height: 100%;
+            background-color: #f87171;
+            border-radius: 2px;
+            animation: soundWaveAnim 1.2s infinite ease-in-out;
+        }
+
+        .sound-wave span:nth-child(2) { animation-delay: 0.2s; }
+        .sound-wave span:nth-child(3) { animation-delay: 0.4s; }
+        .sound-wave span:nth-child(4) { animation-delay: 0.1s; }
+        .sound-wave span:nth-child(5) { animation-delay: 0.3s; }
+
+        @keyframes soundWaveAnim {
+            0%, 100% { height: 4px; }
+            50% { height: 18px; }
+        }
+
+        .transcript-preview {
+            background: rgba(15, 23, 42, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 12px 16px;
+            font-size: 0.88rem;
+            color: #94a3b8;
+            min-height: 48px;
+            max-height: 120px;
+            overflow-y: auto;
+        }
+
+        .transcript-preview.live {
+            color: #38bdf8;
+            border-color: rgba(56, 189, 248, 0.4);
+        }
+
+        .candidate-answer-textarea {
+            width: 100%;
+            min-height: 140px;
+            padding: 16px;
+            background: rgba(15, 23, 42, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 12px;
+            color: #f8fafc;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            resize: vertical;
+            transition: all 0.2s ease;
+        }
+
+        .candidate-answer-textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.25);
+        }
+
+        /* Report Styles */
+        .score-hero-card {
+            background: linear-gradient(135deg, rgba(37, 99, 235, 0.2), rgba(15, 23, 42, 0.9));
+            border: 1px solid rgba(96, 165, 250, 0.3);
+            border-radius: 16px;
+            padding: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            gap: 25px;
+        }
+
+        .score-circle-badge {
+            width: 130px;
+            height: 130px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(37, 99, 235, 0.3) 0%, rgba(15, 23, 42, 0.95) 100%);
+            border: 4px solid var(--accent);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 25px rgba(37, 99, 235, 0.4);
+        }
+
+        .score-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #fff;
+            line-height: 1;
+        }
+
+        .score-denom {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .metric-bar-group {
+            flex: 1;
+            min-width: 260px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .metric-row {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .metric-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.82rem;
+            color: #cbd5e1;
+        }
+
+        .metric-bar-track {
+            height: 8px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .metric-bar-fill {
+            height: 100%;
+            border-radius: 4px;
+            background: linear-gradient(90deg, #2563eb, #60a5fa);
+            transition: width 0.8s ease;
+        }
+
+        .feedback-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .feedback-card {
+            background: var(--bg-card);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 14px;
+            padding: 20px;
+        }
+
+        .feedback-card.strengths {
+            border-left: 4px solid #22c55e;
+        }
+
+        .feedback-card.improvements {
+            border-left: 4px solid #f59e0b;
+        }
+
+        .prep-timeline {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .prep-step {
+            display: flex;
+            gap: 14px;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 10px;
+            padding: 14px;
+        }
+
+        .prep-step-badge {
+            font-weight: 700;
+            color: var(--accent);
+            font-size: 0.85rem;
+            white-space: nowrap;
+        }
+
+        /* History Table */
+        .history-table-wrap {
+            overflow-x: auto;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .history-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 0.9rem;
+        }
+
+        .history-table th {
+            background: rgba(15, 23, 42, 0.8);
+            padding: 14px 18px;
+            color: #cbd5e1;
+            font-weight: 600;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .history-table td {
+            padding: 14px 18px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            color: #e2e8f0;
+        }
+
+        .history-table tr:hover td {
+            background: rgba(37, 99, 235, 0.05);
+        }
+
+        @media (max-width: 768px) {
+            .score-hero-card {
+                flex-direction: column;
+                text-align: center;
+            }
+            .live-status-bar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .question-text-display {
+                font-size: 1.05rem;
+            }
+        }
   </style>
 </head>
 <body>
@@ -2392,6 +2971,9 @@
             </a>
             <a onclick="showSection('profile')" class="nav-item" id="nav-profile">
                 <i class="fas fa-user-circle"></i> <span>Career Profile</span>
+            </a>
+            <a onclick="showSection('interview')" class="nav-item" id="nav-interview">
+                <i class="fas fa-headset"></i> <span>AI Live Interview</span>
             </a>
             <a onclick="showSection('jobs')" class="nav-item" id="nav-jobs">
                 <i class="fas fa-route"></i> <span>Career Path & Jobs</span>
@@ -2576,6 +3158,17 @@
                         <h4>View Career Report</h4>
                         <p>Download comprehensive analysis of your career readiness</p>
                         <a href="#report" onclick="showSection('report')" class="action-btn">Get Report</a>
+                    </div>
+                </div>
+
+                <div class="action-card" style="background: linear-gradient(135deg, rgba(37, 99, 235, 0.2), rgba(124, 58, 237, 0.2)); border: 1px solid rgba(96, 165, 250, 0.35);">
+                    <div class="action-icon" style="background: rgba(37, 99, 235, 0.25); color: #60a5fa;">
+                        <i class="fas fa-headset"></i>
+                    </div>
+                    <div class="action-content">
+                        <h4>AI Live Interview</h4>
+                        <p>Simulate real technical & HR interviews with voice mode and adaptive questioning</p>
+                        <a href="#interview" onclick="showSection('interview')" class="action-btn" style="background: var(--primary);">Start Interview</a>
                     </div>
                 </div>
             </div>
@@ -3191,6 +3784,525 @@
                     <p class="text-muted">Please complete your career profile first to see the AI Career Report.</p>
                 </div>
                 {% endif %}
+            </div>
+        </div>
+
+        <!-- ========================================================= -->
+        <!-- AI LIVE INTERVIEW AGENT SECTION                          -->
+        <!-- ========================================================= -->
+        <div id="interview" class="dashboard-section">
+            <div class="interview-wrapper">
+                <!-- Top Header Card -->
+                <div class="interview-header-card">
+                    <div>
+                        <h2 style="font-size: 1.45rem; font-weight: 700; color: #fff; margin-bottom: 6px; display: flex; align-items: center; gap: 10px;">
+                            <i class="fas fa-headset" style="color: var(--accent);"></i> AI Live Interview Agent
+                        </h2>
+                        <p style="color: var(--text-muted); font-size: 0.9rem; margin: 0;">
+                            Experience realistic Technical &amp; HR interviews with adaptive AI questioning, speech recognition, and instant in-depth feedback.
+                        </p>
+                    </div>
+                    <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+                        <span class="secure-badge" id="interviewActiveEngineBadge" style="background: rgba(37,99,235,0.2); border: 1px solid rgba(96,165,250,0.35); color: #93c5fd; padding: 6px 14px; border-radius: 20px; font-size: 0.82rem; font-weight: 600;">
+                            <i class="fas fa-microchip"></i> <span id="interviewActiveEngineName">AI Engine: Detecting...</span>
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Sub-Navigation Switcher -->
+                <div class="interview-subnav">
+                    <button type="button" class="interview-subnav-btn active" id="tab-interview-config" onclick="switchInterviewTab('config')">
+                        <i class="fas fa-sliders-h"></i> <span>Setup Interview</span>
+                    </button>
+                    <button type="button" class="interview-subnav-btn" id="tab-interview-live" onclick="switchInterviewTab('live')" style="display: none;">
+                        <i class="fas fa-broadcast-tower"></i> <span>Active Session</span>
+                    </button>
+                    <button type="button" class="interview-subnav-btn" id="tab-interview-report" onclick="switchInterviewTab('report')" style="display: none;">
+                        <i class="fas fa-award"></i> <span>Evaluation Report</span>
+                    </button>
+                    <button type="button" class="interview-subnav-btn" id="tab-interview-history" onclick="switchInterviewTab('history'); loadInterviewHistory();">
+                        <i class="fas fa-history"></i> <span>Interview History</span>
+                    </button>
+                </div>
+
+                <!-- 1. CONFIGURATION VIEW -->
+                <div id="view-interview-config" class="config-card">
+                    <div style="margin-bottom: 22px;">
+                        <h3 style="font-size: 1.15rem; color: #fff; margin-bottom: 6px;">
+                            <i class="fas fa-bolt" style="color: #fbbf24;"></i> Quick Presets
+                        </h3>
+                        <p style="color: var(--text-muted); font-size: 0.85rem;">Select an interview style or configure a custom interview track below.</p>
+                    </div>
+
+                    <!-- Preset Cards -->
+                    <div class="preset-grid">
+                        <div class="preset-card selected" id="preset-tech" onclick="applyInterviewPreset('technical')">
+                            <div class="preset-icon" style="background: rgba(37, 99, 235, 0.2); color: #60a5fa;">
+                                <i class="fas fa-code"></i>
+                            </div>
+                            <h4 style="color: #fff; font-size: 1rem; margin-bottom: 4px;">Technical Deep Dive</h4>
+                            <p style="color: var(--text-muted); font-size: 0.8rem; margin: 0;">Code architecture, systems, algorithms &amp; practical concepts.</p>
+                        </div>
+
+                        <div class="preset-card" id="preset-resume" onclick="applyInterviewPreset('resume')">
+                            <div class="preset-icon" style="background: rgba(16, 185, 129, 0.2); color: #34d399;">
+                                <i class="fas fa-file-contract"></i>
+                            </div>
+                            <h4 style="color: #fff; font-size: 1rem; margin-bottom: 4px;">Resume-Based Interview</h4>
+                            <p style="color: var(--text-muted); font-size: 0.8rem; margin: 0;">Questions grounded strictly in your verified profile &amp; projects.</p>
+                        </div>
+
+                        <div class="preset-card" id="preset-hr" onclick="applyInterviewPreset('hr')">
+                            <div class="preset-icon" style="background: rgba(245, 158, 11, 0.2); color: #fbbf24;">
+                                <i class="fas fa-briefcase"></i>
+                            </div>
+                            <h4 style="color: #fff; font-size: 1rem; margin-bottom: 4px;">HR &amp; Culture Fit</h4>
+                            <p style="color: var(--text-muted); font-size: 0.8rem; margin: 0;">Career aspirations, workplace values &amp; compensation discussions.</p>
+                        </div>
+
+                        <div class="preset-card" id="preset-behavioral" onclick="applyInterviewPreset('behavioral')">
+                            <div class="preset-icon" style="background: rgba(168, 85, 247, 0.2); color: #c084fc;">
+                                <i class="fas fa-comments"></i>
+                            </div>
+                            <h4 style="color: #fff; font-size: 1rem; margin-bottom: 4px;">Behavioral &amp; STAR</h4>
+                            <p style="color: var(--text-muted); font-size: 0.8rem; margin: 0;">Scenario-based problem solving, conflict resolution &amp; teamwork.</p>
+                        </div>
+                    </div>
+
+                    <!-- Config Form -->
+                    <div class="config-grid">
+                        <div class="form-group-custom">
+                            <label><i class="fas fa-user-tag"></i> Target Role</label>
+                            <select id="cfgRoleSelect" class="form-control-custom" onchange="handleRoleSelectionChange()">
+                                <option value="Full Stack Developer">Full Stack Developer</option>
+                                <option value="Frontend Developer">Frontend Developer</option>
+                                <option value="Backend Developer">Backend Developer</option>
+                                <option value="Python Developer">Python Developer</option>
+                                <option value="Data Analyst">Data Analyst</option>
+                                <option value="CUSTOM">Custom job role...</option>
+                            </select>
+                            <div id="customRoleInputContainer" style="display: none; margin-top: 8px;">
+                                <input type="text" id="cfgCustomRoleInput" class="form-control-custom" placeholder="e.g. Cloud DevOps Engineer, Mobile iOS Developer...">
+                            </div>
+                        </div>
+
+                        <div class="form-group-custom">
+                            <label><i class="fas fa-layer-group"></i> Interview Type</label>
+                            <div class="radio-tile-group">
+                                <label>
+                                    <input type="radio" name="cfgInterviewType" value="technical" class="radio-tile-input" checked>
+                                    <div class="radio-tile-label">Technical</div>
+                                </label>
+                                <label>
+                                    <input type="radio" name="cfgInterviewType" value="hr" class="radio-tile-input">
+                                    <div class="radio-tile-label">HR</div>
+                                </label>
+                                <label>
+                                    <input type="radio" name="cfgInterviewType" value="behavioral" class="radio-tile-input">
+                                    <div class="radio-tile-label">Behavioral</div>
+                                </label>
+                                <label>
+                                    <input type="radio" name="cfgInterviewType" value="mixed" class="radio-tile-input">
+                                    <div class="radio-tile-label">Mixed</div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="form-group-custom">
+                            <label><i class="fas fa-tachometer-alt"></i> Difficulty Level</label>
+                            <div class="radio-tile-group">
+                                <label>
+                                    <input type="radio" name="cfgDifficulty" value="beginner" class="radio-tile-input">
+                                    <div class="radio-tile-label">Beginner</div>
+                                </label>
+                                <label>
+                                    <input type="radio" name="cfgDifficulty" value="intermediate" class="radio-tile-input" checked>
+                                    <div class="radio-tile-label">Intermediate</div>
+                                </label>
+                                <label>
+                                    <input type="radio" name="cfgDifficulty" value="advanced" class="radio-tile-input">
+                                    <div class="radio-tile-label">Advanced</div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="form-group-custom">
+                            <label><i class="fas fa-hourglass-half"></i> Session Duration</label>
+                            <select id="cfgDurationSelect" class="form-control-custom">
+                                <option value="5">5 Minutes (3 Questions - Quick Check)</option>
+                                <option value="10" selected>10 Minutes (5 Questions - Standard)</option>
+                                <option value="15">15 Minutes (7 Questions - Comprehensive)</option>
+                                <option value="30">30 Minutes (10 Questions - Deep Dive)</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group-custom">
+                            <label><i class="fas fa-microphone-alt"></i> Interaction Mode</label>
+                            <div class="radio-tile-group">
+                                <label>
+                                    <input type="radio" name="cfgInteractionMode" value="voice" class="radio-tile-input" checked>
+                                    <div class="radio-tile-label"><i class="fas fa-microphone"></i> Voice Interview</div>
+                                </label>
+                                <label>
+                                    <input type="radio" name="cfgInteractionMode" value="text" class="radio-tile-input">
+                                    <div class="radio-tile-label"><i class="fas fa-keyboard"></i> Text Interview</div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="form-group-custom">
+                            <label><i class="fas fa-id-badge"></i> Resume Personalization</label>
+                            <div style="background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; padding: 12px;">
+                                <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; margin: 0; font-size: 0.88rem; color: #fff;">
+                                    <input type="checkbox" id="cfgUseResumeCheckbox" style="width: 18px; height: 18px; accent-color: var(--primary);">
+                                    <span>Personalize with my uploaded resume &amp; profile</span>
+                                </label>
+                                <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 6px; padding-left: 28px;">
+                                    Candidate: <strong id="cfgCandidateNameDisplay">{{ student[2] if student else session.username }}</strong>
+                                    <span id="cfgResumeStatusDisplay" style="color: #34d399; margin-left: 8px;"><i class="fas fa-check-circle"></i> Profile Connected</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Skills & Technologies -->
+                    <div style="margin-bottom: 26px;">
+                        <label style="display: block; font-weight: 500; font-size: 0.9rem; color: #cbd5e1; margin-bottom: 8px;">
+                            <i class="fas fa-tools"></i> Target Technologies &amp; Focus Skills (Optional)
+                        </label>
+                        <input type="text" id="cfgTargetSkillsInput" class="form-control-custom" placeholder="e.g. React, Node.js, SQL, REST APIs, System Design..." style="margin-bottom: 10px;">
+                        <div>
+                            <span style="font-size: 0.78rem; color: var(--text-muted); margin-right: 6px;">Suggested:</span>
+                            <span class="badge-clickable" onclick="addSkillToInput('React')">React</span>
+                            <span class="badge-clickable" onclick="addSkillToInput('Python')">Python</span>
+                            <span class="badge-clickable" onclick="addSkillToInput('SQL')">SQL</span>
+                            <span class="badge-clickable" onclick="addSkillToInput('JavaScript')">JavaScript</span>
+                            <span class="badge-clickable" onclick="addSkillToInput('Docker')">Docker</span>
+                            <span class="badge-clickable" onclick="addSkillToInput('System Design')">System Design</span>
+                            <span class="badge-clickable" onclick="addSkillToInput('FastAPI')">FastAPI</span>
+                            <span class="badge-clickable" onclick="addSkillToInput('Node.js')">Node.js</span>
+                            <span class="badge-clickable" onclick="addSkillToInput('Pandas')">Pandas</span>
+                        </div>
+                    </div>
+
+                    <!-- Launch Button -->
+                    <div style="display: flex; justify-content: flex-end; align-items: center; gap: 15px; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 20px;">
+                        <button type="button" class="btn btn-primary" id="btnLaunchInterview" onclick="startInterviewSession()" style="padding: 14px 32px; font-size: 1rem; font-weight: 600; box-shadow: 0 4px 18px rgba(37, 99, 235, 0.45); display: inline-flex; align-items: center; gap: 10px;">
+                            <i class="fas fa-play"></i> Start Live Interview
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 2. LIVE INTERVIEW WORKSPACE VIEW -->
+                <div id="view-interview-live" class="live-workspace-card" style="display: none;">
+                    <!-- Status & Controls Bar -->
+                    <div class="live-status-bar">
+                        <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+                            <span id="liveBadgeRole" style="background: rgba(37,99,235,0.25); color: #93c5fd; padding: 6px 14px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; border: 1px solid rgba(96,165,250,0.3);">
+                                Full Stack Developer
+                            </span>
+                            <span id="liveBadgeType" style="background: rgba(255,255,255,0.06); color: #cbd5e1; padding: 6px 14px; border-radius: 20px; font-size: 0.85rem; font-weight: 500;">
+                                Technical • Intermediate
+                            </span>
+                            <span id="liveBadgeMode" style="background: rgba(16,185,129,0.15); color: #34d399; padding: 6px 14px; border-radius: 20px; font-size: 0.85rem; font-weight: 500;">
+                                <i class="fas fa-microphone"></i> Voice Active
+                            </span>
+                        </div>
+
+                        <div style="display: flex; align-items: center; gap: 14px; flex-wrap: wrap;">
+                            <!-- Timer -->
+                            <div class="timer-badge" id="liveTimerBadge">
+                                <i class="fas fa-clock"></i> <span id="liveTimerText">10:00</span>
+                            </div>
+                            <!-- Pause / Resume Button -->
+                            <button type="button" class="btn btn-outline" id="btnLivePauseToggle" onclick="togglePauseInterview()" style="padding: 8px 16px; font-size: 0.85rem;">
+                                <i class="fas fa-pause"></i> <span id="btnLivePauseText">Pause</span>
+                            </button>
+                            <!-- End Early Button -->
+                            <button type="button" class="btn btn-outline" onclick="confirmEndInterviewEarly()" style="padding: 8px 16px; font-size: 0.85rem; border-color: rgba(239, 68, 68, 0.4); color: #f87171;">
+                                <i class="fas fa-stop-circle"></i> End Session
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Progress Bar -->
+                    <div>
+                        <div style="display: flex; justify-content: space-between; font-size: 0.85rem; color: #cbd5e1; margin-bottom: 6px;">
+                            <span id="liveProgressCounterText">Question 1 of 5</span>
+                            <span id="liveProgressPercentText">20% Completed</span>
+                        </div>
+                        <div style="height: 6px; background: rgba(255,255,255,0.08); border-radius: 3px; overflow: hidden;">
+                            <div id="liveProgressBarFill" style="width: 20%; height: 100%; background: linear-gradient(90deg, #2563eb, #60a5fa); transition: width 0.4s ease;"></div>
+                        </div>
+                    </div>
+
+                    <!-- Instant Evaluation Feedback from Previous Question (if any) -->
+                    <div id="livePrevFeedbackBanner" style="display: none; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(52, 211, 153, 0.3); border-radius: 10px; padding: 12px 16px; font-size: 0.85rem; color: #6ee7b7;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                            <strong><i class="fas fa-check-circle"></i> Previous Answer Evaluation:</strong>
+                            <span id="livePrevScoreBadge" style="background: rgba(16, 185, 129, 0.25); padding: 2px 10px; border-radius: 12px; font-weight: 700;">85/100</span>
+                        </div>
+                        <div id="livePrevFeedbackText" style="color: #e2e8f0; font-size: 0.82rem;"></div>
+                    </div>
+
+                    <!-- Current AI Question Card -->
+                    <div class="question-box">
+                        <div class="ai-interviewer-tag">
+                            <span class="pulse-indicator"></span>
+                            <span>SkillMatch AI Interviewer</span>
+                            <span id="liveQuestionTypeTag" style="color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase;">[Technical]</span>
+                        </div>
+                        <div id="liveCurrentQuestionText" class="question-text-display">
+                            Generating your personalized opening question...
+                        </div>
+                        <div class="audio-playback-bar">
+                            <button type="button" class="btn btn-secondary" onclick="speakCurrentQuestion()" style="padding: 6px 14px; font-size: 0.82rem; display: inline-flex; align-items: center; gap: 6px;">
+                                <i class="fas fa-volume-up"></i> <span id="btnSpeakText">Listen Question</span>
+                            </button>
+                            <button type="button" class="btn btn-secondary" onclick="repeatCurrentQuestion()" style="padding: 6px 14px; font-size: 0.82rem; display: inline-flex; align-items: center; gap: 6px;">
+                                <i class="fas fa-redo"></i> Repeat
+                            </button>
+                            <button type="button" class="btn btn-outline" id="btnToggleMuteVoice" onclick="toggleMuteAudio()" style="padding: 6px 12px; font-size: 0.82rem;">
+                                <i class="fas fa-volume-mute" id="muteIcon"></i> <span id="muteLabel">Mute</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Voice Interaction Controls (Active in Voice Mode) -->
+                    <div id="liveVoiceControlsArea" class="voice-control-box">
+                        <div class="voice-status-row">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <span id="liveMicStatusBadge" style="font-size: 0.85rem; color: #94a3b8; display: inline-flex; align-items: center; gap: 6px;">
+                                    <i class="fas fa-microphone-slash"></i> Microphone Standby
+                                </span>
+                                <div id="liveSoundWave" class="sound-wave" style="display: none;">
+                                    <span></span><span></span><span></span><span></span><span></span>
+                                </div>
+                            </div>
+                            <div style="display: flex; gap: 10px;">
+                                <button type="button" id="btnRecordToggle" class="btn-mic-record" onclick="toggleSpeechRecording()">
+                                    <i class="fas fa-microphone"></i> <span id="btnRecordLabel">Click to Speak</span>
+                                </button>
+                                <button type="button" id="btnRetrySpeech" class="btn btn-secondary" onclick="clearLiveTranscript()" style="padding: 10px 16px; font-size: 0.85rem; display: none;">
+                                    <i class="fas fa-eraser"></i> Clear
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Live Transcript Preview -->
+                        <div>
+                            <div style="display: flex; justify-content: space-between; font-size: 0.78rem; color: var(--text-muted); margin-bottom: 4px;">
+                                <span><i class="fas fa-wave-square"></i> Live Speech-to-Text Transcript:</span>
+                                <span>Edit below before submitting</span>
+                            </div>
+                            <div id="liveTranscriptDisplay" class="transcript-preview">
+                                <em>Speak into your microphone. Recognized speech will appear here and in the editor below...</em>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Answer Input Area (Text &amp; Voice Editable Fallback) -->
+                    <div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                            <label style="font-weight: 500; font-size: 0.88rem; color: #cbd5e1; margin: 0;">
+                                <i class="fas fa-edit"></i> Your Response
+                            </label>
+                            <span id="liveAnswerWordCount" style="font-size: 0.78rem; color: var(--text-muted);">0 words</span>
+                        </div>
+                        <textarea id="liveAnswerInput" class="candidate-answer-textarea" placeholder="Speak into your microphone or type your answer here. Provide technical details, rationale, and real-world examples..." oninput="handleAnswerInputUpdate()"></textarea>
+                        <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 6px;">
+                            💡 <em>Tip: Structure your thoughts clearly. Highlight principles, trade-offs, and concrete implementation steps.</em>
+                        </div>
+                    </div>
+
+                    <!-- Submit & Progress Footer -->
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 20px;">
+                        <div id="liveEvaluatingIndicator" style="display: none; align-items: center; gap: 10px; color: #60a5fa; font-size: 0.88rem;">
+                            <i class="fas fa-circle-notch fa-spin"></i>
+                            <span>AI is analyzing your response and formulating adaptive follow-ups...</span>
+                        </div>
+                        <div style="margin-left: auto;">
+                            <button type="button" id="btnSubmitAnswer" class="btn btn-primary" onclick="submitCandidateAnswer()" style="padding: 13px 32px; font-size: 0.95rem; font-weight: 600; display: inline-flex; align-items: center; gap: 10px;">
+                                <i class="fas fa-paper-plane"></i> <span>Submit Answer</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Conversation History Collapsible -->
+                    <div style="margin-top: 15px; border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; overflow: hidden;">
+                        <div onclick="toggleLiveConvHistory()" style="padding: 12px 18px; background: rgba(15,23,42,0.6); display: flex; justify-content: space-between; align-items: center; cursor: pointer; user-select: none;">
+                            <span style="font-size: 0.85rem; font-weight: 600; color: #cbd5e1;">
+                                <i class="fas fa-comments"></i> Session Conversation Thread (<span id="liveConvItemCount">1</span>)
+                            </span>
+                            <i id="liveConvArrow" class="fas fa-chevron-down" style="color: var(--text-muted); font-size: 0.85rem;"></i>
+                        </div>
+                        <div id="liveConvHistoryContent" style="display: none; padding: 16px; background: rgba(15,23,42,0.4); max-height: 280px; overflow-y: auto;">
+                            <!-- Populated dynamically -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. COMPREHENSIVE EVALUATION REPORT VIEW -->
+                <div id="view-interview-report" style="display: none; flex-direction: column; gap: 24px;">
+                    <!-- Report Header -->
+                    <div class="score-hero-card">
+                        <div class="score-circle-badge">
+                            <span class="score-number" id="rptOverallScore">82</span>
+                            <span class="score-denom">OUT OF 100</span>
+                        </div>
+                        <div class="metric-bar-group">
+                            <div style="margin-bottom: 6px;">
+                                <h3 id="rptCandidateRoleTitle" style="color: #fff; font-size: 1.25rem; margin-bottom: 4px;">Full Stack Developer Assessment</h3>
+                                <div id="rptMetaInfo" style="font-size: 0.82rem; color: var(--text-muted);">Completed • AI Practice Feedback</div>
+                            </div>
+                            <!-- Metric 1: Technical Knowledge -->
+                            <div class="metric-row">
+                                <div class="metric-labels">
+                                    <span>Technical Knowledge &amp; Correctness</span>
+                                    <strong id="rptScoreTech">85%</strong>
+                                </div>
+                                <div class="metric-bar-track">
+                                    <div id="rptBarTech" class="metric-bar-fill" style="width: 85%;"></div>
+                                </div>
+                            </div>
+                            <!-- Metric 2: Relevance -->
+                            <div class="metric-row">
+                                <div class="metric-labels">
+                                    <span>Answer Relevance to Role</span>
+                                    <strong id="rptScoreRelevance">80%</strong>
+                                </div>
+                                <div class="metric-bar-track">
+                                    <div id="rptBarRelevance" class="metric-bar-fill" style="width: 80%;"></div>
+                                </div>
+                            </div>
+                            <!-- Metric 3: Clarity -->
+                            <div class="metric-row">
+                                <div class="metric-labels">
+                                    <span>Communication &amp; Clarity</span>
+                                    <strong id="rptScoreClarity">78%</strong>
+                                </div>
+                                <div class="metric-bar-track">
+                                    <div id="rptBarClarity" class="metric-bar-fill" style="width: 78%;"></div>
+                                </div>
+                            </div>
+                            <!-- Metric 4: Problem Solving -->
+                            <div class="metric-row">
+                                <div class="metric-labels">
+                                    <span>Problem-Solving &amp; Architecture</span>
+                                    <strong id="rptScoreProblem">82%</strong>
+                                </div>
+                                <div class="metric-bar-track">
+                                    <div id="rptBarProblem" class="metric-bar-fill" style="width: 82%;"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- AI Summary Critique -->
+                    <div class="config-card">
+                        <h4 style="font-size: 1rem; color: #fff; margin-bottom: 8px;">
+                            <i class="fas fa-brain" style="color: var(--accent);"></i> Performance Synthesis
+                        </h4>
+                        <p id="rptSummaryStatement" style="color: #cbd5e1; font-size: 0.92rem; line-height: 1.6; margin: 0;"></p>
+                    </div>
+
+                    <!-- Strengths & Missing Concepts -->
+                    <div class="feedback-grid">
+                        <div class="feedback-card strengths">
+                            <h4 style="font-size: 0.98rem; color: #22c55e; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+                                <i class="fas fa-check-circle"></i> Demonstrated Strengths
+                            </h4>
+                            <ul id="rptStrengthsList" style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px; font-size: 0.88rem; color: #cbd5e1;"></ul>
+                        </div>
+
+                        <div class="feedback-card improvements">
+                            <h4 style="font-size: 0.98rem; color: #f59e0b; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+                                <i class="fas fa-exclamation-triangle"></i> Key Missing Concepts &amp; Mistakes
+                            </h4>
+                            <ul id="rptMissingList" style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px; font-size: 0.88rem; color: #cbd5e1;"></ul>
+                        </div>
+                    </div>
+
+                    <!-- Recommended Topics -->
+                    <div class="config-card">
+                        <h4 style="font-size: 1rem; color: #fff; margin-bottom: 12px;">
+                            <i class="fas fa-star" style="color: #fbbf24;"></i> Recommended Study Topics for Target Role
+                        </h4>
+                        <div id="rptStudyTopicsContainer" style="display: flex; flex-wrap: wrap; gap: 10px;"></div>
+                    </div>
+
+                    <!-- 7-Day Personalized Preparation Roadmap -->
+                    <div class="config-card">
+                        <h4 style="font-size: 1rem; color: #fff; margin-bottom: 16px;">
+                            <i class="fas fa-calendar-alt" style="color: var(--accent);"></i> 7-Day Personalized Preparation Roadmap
+                        </h4>
+                        <div id="rptPrepTimeline" class="prep-timeline"></div>
+                    </div>
+
+                    <!-- Question-by-Question Detailed Review -->
+                    <div class="config-card">
+                        <h4 style="font-size: 1rem; color: #fff; margin-bottom: 16px;">
+                            <i class="fas fa-list-ol" style="color: #38bdf8;"></i> Question-by-Question Detailed Analysis
+                        </h4>
+                        <div id="rptQaAccordion" style="display: flex; flex-direction: column; gap: 12px;"></div>
+                    </div>
+
+                    <!-- Actions Footer -->
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; padding-top: 10px;">
+                        <button type="button" class="btn btn-outline" onclick="switchInterviewTab('history'); loadInterviewHistory();">
+                            <i class="fas fa-history"></i> View All History
+                        </button>
+                        <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                            <button type="button" class="btn btn-secondary" onclick="window.print()">
+                                <i class="fas fa-print"></i> Print Report
+                            </button>
+                            <a id="btnDownloadPdfReportLink" href="#" class="btn btn-success" style="text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
+                                <i class="fas fa-file-pdf"></i> Download Official PDF Report
+                            </a>
+                            <button type="button" class="btn btn-primary" onclick="resetToNewInterview()">
+                                <i class="fas fa-redo"></i> Start Another Interview
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 4. INTERVIEW HISTORY VIEW -->
+                <div id="view-interview-history" class="config-card" style="display: none;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px;">
+                        <div>
+                            <h3 style="font-size: 1.15rem; color: #fff; margin-bottom: 4px;">
+                                <i class="fas fa-history" style="color: var(--accent);"></i> Interview History &amp; Past Assessments
+                            </h3>
+                            <p style="color: var(--text-muted); font-size: 0.85rem; margin: 0;">Review your progress, revisit past reports, or resume unfinished sessions.</p>
+                        </div>
+                        <button type="button" class="btn btn-primary" onclick="switchInterviewTab('config')" style="padding: 8px 18px; font-size: 0.88rem;">
+                            <i class="fas fa-plus"></i> New Interview
+                        </button>
+                    </div>
+
+                    <div class="history-table-wrap">
+                        <table class="history-table">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Role &amp; Track</th>
+                                    <th>Difficulty</th>
+                                    <th>Mode</th>
+                                    <th>Score</th>
+                                    <th>Status</th>
+                                    <th style="text-align: right;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="interviewHistoryTableBody">
+                                <tr>
+                                    <td colspan="7" style="text-align: center; padding: 30px; color: var(--text-muted);">
+                                        <i class="fas fa-circle-notch fa-spin"></i> Loading interview records...
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -6429,5 +7541,1046 @@
             transition: all 0.2s ease;
         }
     </style>
+
+    <!-- ================================================================= -->
+    <!-- AI LIVE INTERVIEW AGENT CLIENT CONTROLLER                         -->
+    <!-- ================================================================= -->
+    <script id="ai-live-interview-controller">
+        // Global Interview & Speech State
+        const interviewState = {
+            sessionToken: null,
+            role: 'Full Stack Developer',
+            interviewType: 'technical',
+            difficulty: 'intermediate',
+            durationMinutes: 10,
+            mode: 'voice',
+            currentQuestionIndex: 1,
+            totalQuestions: 5,
+            currentQuestionText: '',
+            currentQuestionType: 'technical',
+            isPaused: false,
+            timeRemainingSeconds: 600,
+            timerInterval: null,
+            questionStartTime: null,
+            isEvaluating: false,
+            isSpeaking: false,
+            isMuted: false,
+            conversationHistory: []
+        };
+
+        const speechState = {
+            isRecording: false,
+            recognition: null,
+            isSupported: false,
+            synth: window.speechSynthesis || null,
+            currentUtterance: null,
+            transcript: ''
+        };
+
+        let currentActiveReport = null;
+
+        // Initialize on DOM Ready
+        document.addEventListener('DOMContentLoaded', () => {
+            initSpeechCapabilities();
+            detectInterviewAiStatus();
+        });
+
+        // 1. Detect AI Engine & Profile Context
+        async function detectInterviewAiStatus() {
+            try {
+                const resp = await fetch('/api/interview/ai_status');
+                if (resp.ok) {
+                    const data = await resp.json();
+                    if (data.success) {
+                        const engineElem = document.getElementById('interviewActiveEngineName');
+                        if (engineElem) {
+                            engineElem.textContent = 'AI Engine: ' + data.provider;
+                        }
+                        if (data.context) {
+                            const nameDisp = document.getElementById('cfgCandidateNameDisplay');
+                            if (nameDisp && data.context.name) {
+                                nameDisp.textContent = data.context.name;
+                            }
+                            const resumeStat = document.getElementById('cfgResumeStatusDisplay');
+                            if (resumeStat) {
+                                if (data.context.has_resume) {
+                                    resumeStat.innerHTML = '<i class="fas fa-check-circle"></i> Resume & Profile Connected';
+                                    resumeStat.style.color = '#34d399';
+                                    const resumeBox = document.getElementById('cfgUseResumeCheckbox');
+                                    if (resumeBox) resumeBox.checked = true;
+                                } else {
+                                    resumeStat.innerHTML = '<i class="fas fa-info-circle"></i> Profile Connected (No resume PDF uploaded)';
+                                    resumeStat.style.color = '#94a3b8';
+                                }
+                            }
+                        }
+                    }
+                }
+            } catch (err) {
+                console.warn('AI status check note:', err);
+            }
+        }
+
+        // 2. Initialize Web Speech Recognition
+        function initSpeechCapabilities() {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (SpeechRecognition) {
+                speechState.isSupported = true;
+                const rec = new SpeechRecognition();
+                rec.continuous = true;
+                rec.interimResults = true;
+                rec.lang = 'en-US';
+
+                rec.onstart = () => {
+                    speechState.isRecording = true;
+                    updateMicUIState('recording');
+                };
+
+                rec.onresult = (event) => {
+                    let interim = '';
+                    let final = '';
+                    for (let i = event.resultIndex; i < event.results.length; ++i) {
+                        if (event.results[i].isFinal) {
+                            final += event.results[i][0].transcript + ' ';
+                        } else {
+                            interim += event.results[i][0].transcript;
+                        }
+                    }
+
+                    if (final) {
+                        speechState.transcript += final;
+                    }
+
+                    const displayDiv = document.getElementById('liveTranscriptDisplay');
+                    if (displayDiv) {
+                        displayDiv.classList.add('live');
+                        displayDiv.textContent = (speechState.transcript + ' ' + interim).trim() || 'Listening...';
+                    }
+
+                    // Sync into candidate answer textarea
+                    const answerInput = document.getElementById('liveAnswerInput');
+                    if (answerInput) {
+                        answerInput.value = (speechState.transcript + ' ' + interim).trim();
+                        handleAnswerInputUpdate();
+                    }
+                };
+
+                rec.onerror = (event) => {
+                    console.warn('Speech recognition event:', event.error);
+                    if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
+                        updateMicUIState('denied');
+                        alert('Microphone permission was denied. You can continue typing your response in the text area.');
+                    } else if (event.error === 'no-speech') {
+                        // Keep listening
+                    } else {
+                        updateMicUIState('standby');
+                    }
+                };
+
+                rec.onend = () => {
+                    if (speechState.isRecording && !interviewState.isPaused && !interviewState.isEvaluating) {
+                        // Auto-restart if browser timed out
+                        try { rec.start(); } catch(e) { speechState.isRecording = false; updateMicUIState('standby'); }
+                    } else {
+                        speechState.isRecording = false;
+                        updateMicUIState('standby');
+                    }
+                };
+
+                speechState.recognition = rec;
+            } else {
+                speechState.isSupported = false;
+                const statusBadge = document.getElementById('liveMicStatusBadge');
+                if (statusBadge) {
+                    statusBadge.innerHTML = '<i class="fas fa-exclamation-circle" style="color: #fbbf24;"></i> Voice input not supported in this browser. Text input active.';
+                }
+            }
+        }
+
+        // Toggle speech recording
+        function toggleSpeechRecording() {
+            if (!speechState.isSupported) {
+                alert('Speech recognition is not supported in this browser. Please type your response directly into the text editor.');
+                return;
+            }
+
+            if (!speechState.recognition) return;
+
+            if (speechState.isRecording) {
+                speechState.isRecording = false;
+                try { speechState.recognition.stop(); } catch(e) {}
+                updateMicUIState('standby');
+            } else {
+                try {
+                    speechState.recognition.start();
+                } catch(e) {
+                    console.warn('Speech start error:', e);
+                }
+            }
+        }
+
+        function updateMicUIState(state) {
+            const btn = document.getElementById('btnRecordToggle');
+            const label = document.getElementById('btnRecordLabel');
+            const statusBadge = document.getElementById('liveMicStatusBadge');
+            const wave = document.getElementById('liveSoundWave');
+            const retryBtn = document.getElementById('btnRetrySpeech');
+
+            if (state === 'recording') {
+                if (btn) {
+                    btn.classList.add('recording');
+                    if (label) label.textContent = 'Recording (Click to Pause)';
+                }
+                if (statusBadge) {
+                    statusBadge.innerHTML = '<i class="fas fa-microphone" style="color: #ef4444;"></i> Listening to Candidate...';
+                }
+                if (wave) wave.style.display = 'inline-flex';
+                if (retryBtn) retryBtn.style.display = 'inline-flex';
+            } else if (state === 'denied') {
+                if (btn) {
+                    btn.classList.remove('recording');
+                    if (label) label.textContent = 'Mic Permission Blocked';
+                }
+                if (statusBadge) {
+                    statusBadge.innerHTML = '<i class="fas fa-ban" style="color: #ef4444;"></i> Microphone Blocked - Use Text Editor Below';
+                }
+                if (wave) wave.style.display = 'none';
+            } else {
+                if (btn) {
+                    btn.classList.remove('recording');
+                    if (label) label.textContent = 'Click to Speak';
+                }
+                if (statusBadge) {
+                    statusBadge.innerHTML = '<i class="fas fa-microphone-slash"></i> Microphone Standby';
+                }
+                if (wave) wave.style.display = 'none';
+            }
+        }
+
+        function clearLiveTranscript() {
+            speechState.transcript = '';
+            const displayDiv = document.getElementById('liveTranscriptDisplay');
+            if (displayDiv) {
+                displayDiv.textContent = 'Transcript cleared. Speak again or edit in the textarea below.';
+            }
+            const answerInput = document.getElementById('liveAnswerInput');
+            if (answerInput) {
+                answerInput.value = '';
+                handleAnswerInputUpdate();
+            }
+        }
+
+        // 3. Text-To-Speech (TTS) Question Playback
+        function speakText(text) {
+            if (!speechState.synth || interviewState.isMuted) return;
+
+            try {
+                speechState.synth.cancel(); // Stop ongoing speech
+                const clean = text.replace(/[*_#`]/g, '');
+                const utterance = new SpeechSynthesisUtterance(clean);
+                utterance.rate = 0.95;
+                utterance.pitch = 1.0;
+
+                const voices = speechState.synth.getVoices();
+                const engVoice = voices.find(v => v.lang.startsWith('en') && (v.name.includes('Natural') || v.name.includes('Google') || v.name.includes('David') || v.name.includes('Zira')));
+                if (engVoice) utterance.voice = engVoice;
+
+                utterance.onstart = () => {
+                    interviewState.isSpeaking = true;
+                    const speakTextElem = document.getElementById('btnSpeakText');
+                    if (speakTextElem) speakTextElem.textContent = 'Speaking...';
+                };
+
+                utterance.onend = () => {
+                    interviewState.isSpeaking = false;
+                    const speakTextElem = document.getElementById('btnSpeakText');
+                    if (speakTextElem) speakTextElem.textContent = 'Listen Question';
+                };
+
+                speechState.currentUtterance = utterance;
+                speechState.synth.speak(utterance);
+            } catch (e) {
+                console.warn('TTS playback note:', e);
+            }
+        }
+
+        function speakCurrentQuestion() {
+            if (interviewState.currentQuestionText) {
+                speakText(interviewState.currentQuestionText);
+            }
+        }
+
+        function repeatCurrentQuestion() {
+            speakCurrentQuestion();
+        }
+
+        function toggleMuteAudio() {
+            interviewState.isMuted = !interviewState.isMuted;
+            const muteIcon = document.getElementById('muteIcon');
+            const muteLabel = document.getElementById('muteLabel');
+            if (interviewState.isMuted) {
+                if (speechState.synth) speechState.synth.cancel();
+                if (muteIcon) muteIcon.className = 'fas fa-volume-up';
+                if (muteLabel) muteLabel.textContent = 'Unmute';
+            } else {
+                if (muteIcon) muteIcon.className = 'fas fa-volume-mute';
+                if (muteLabel) muteLabel.textContent = 'Mute';
+                speakCurrentQuestion();
+            }
+        }
+
+        // 4. Sub-Navigation Tabs Switcher
+        function switchInterviewTab(tab) {
+            const views = {
+                'config': document.getElementById('view-interview-config'),
+                'live': document.getElementById('view-interview-live'),
+                'report': document.getElementById('view-interview-report'),
+                'history': document.getElementById('view-interview-history')
+            };
+
+            const buttons = {
+                'config': document.getElementById('tab-interview-config'),
+                'live': document.getElementById('tab-interview-live'),
+                'report': document.getElementById('tab-interview-report'),
+                'history': document.getElementById('tab-interview-history')
+            };
+
+            for (const key in views) {
+                if (views[key]) {
+                    views[key].style.display = (key === tab) ? (key === 'report' ? 'flex' : 'block') : 'none';
+                }
+                if (buttons[key]) {
+                    if (key === tab) {
+                        buttons[key].classList.add('active');
+                    } else {
+                        buttons[key].classList.remove('active');
+                    }
+                }
+            }
+        }
+
+        // 5. Presets Logic
+        function applyInterviewPreset(type) {
+            document.querySelectorAll('.preset-card').forEach(c => c.classList.remove('selected'));
+            const card = document.getElementById('preset-' + type);
+            if (card) card.classList.add('selected');
+
+            const typeRadios = document.getElementsByName('cfgInterviewType');
+            const resumeBox = document.getElementById('cfgUseResumeCheckbox');
+            const skillsInput = document.getElementById('cfgTargetSkillsInput');
+
+            if (type === 'technical') {
+                for (const r of typeRadios) if (r.value === 'technical') r.checked = true;
+                if (skillsInput && !skillsInput.value) skillsInput.value = 'Data Structures, REST APIs, Databases, System Architecture';
+            } else if (type === 'resume') {
+                if (resumeBox) resumeBox.checked = true;
+                for (const r of typeRadios) if (r.value === 'mixed') r.checked = true;
+            } else if (type === 'hr') {
+                for (const r of typeRadios) if (r.value === 'hr') r.checked = true;
+            } else if (type === 'behavioral') {
+                for (const r of typeRadios) if (r.value === 'behavioral') r.checked = true;
+            }
+        }
+
+        function handleRoleSelectionChange() {
+            const sel = document.getElementById('cfgRoleSelect');
+            const customBox = document.getElementById('customRoleInputContainer');
+            if (sel && customBox) {
+                customBox.style.display = (sel.value === 'CUSTOM') ? 'block' : 'none';
+            }
+        }
+
+        function addSkillToInput(skill) {
+            const input = document.getElementById('cfgTargetSkillsInput');
+            if (!input) return;
+            const current = input.value.split(',').map(s => s.trim()).filter(Boolean);
+            if (!current.includes(skill)) {
+                current.push(skill);
+                input.value = current.join(', ');
+            }
+        }
+
+        function handleAnswerInputUpdate() {
+            const input = document.getElementById('liveAnswerInput');
+            const counter = document.getElementById('liveAnswerWordCount');
+            if (!input || !counter) return;
+            const words = input.value.trim().split(/\s+/).filter(Boolean);
+            counter.textContent = `${words.length} word${words.length === 1 ? '' : 's'}`;
+        }
+
+        // 6. Launch Interview Session
+        async function startInterviewSession() {
+            const btn = document.getElementById('btnLaunchInterview');
+            const originalHtml = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = `<i class="fas fa-circle-notch fa-spin"></i> Initializing AI Session...`;
+
+            try {
+                // Collect configuration values
+                let role = document.getElementById('cfgRoleSelect').value;
+                if (role === 'CUSTOM') {
+                    const customRole = document.getElementById('cfgCustomRoleInput').value.trim();
+                    role = customRole || 'Software Engineer';
+                }
+
+                let interviewType = 'technical';
+                const typeRadios = document.getElementsByName('cfgInterviewType');
+                for (const r of typeRadios) {
+                    if (r.checked) { interviewType = r.value; break; }
+                }
+
+                let difficulty = 'intermediate';
+                const diffRadios = document.getElementsByName('cfgDifficulty');
+                for (const r of diffRadios) {
+                    if (r.checked) { difficulty = r.value; break; }
+                }
+
+                const duration = parseInt(document.getElementById('cfgDurationSelect').value, 10) || 10;
+
+                let mode = 'voice';
+                const modeRadios = document.getElementsByName('cfgInteractionMode');
+                for (const r of modeRadios) {
+                    if (r.checked) { mode = r.value; break; }
+                }
+
+                const useResume = document.getElementById('cfgUseResumeCheckbox').checked;
+                const skills = document.getElementById('cfgTargetSkillsInput').value.trim();
+
+                const payload = {
+                    role: role,
+                    interview_type: interviewType,
+                    difficulty: difficulty,
+                    duration: duration,
+                    mode: mode,
+                    use_resume: useResume,
+                    skills: skills
+                };
+
+                const resp = await fetch('/api/interview/start', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await resp.json();
+
+                if (!resp.ok || !data.success) {
+                    alert(data.error || 'Failed to initialize interview session.');
+                    btn.disabled = false;
+                    btn.innerHTML = originalHtml;
+                    return;
+                }
+
+                // Setup state
+                interviewState.sessionToken = data.session_token;
+                interviewState.role = data.role;
+                interviewState.interviewType = data.interview_type;
+                interviewState.difficulty = data.difficulty;
+                interviewState.durationMinutes = data.duration_minutes;
+                interviewState.mode = data.mode;
+                interviewState.currentQuestionIndex = data.current_question_index;
+                interviewState.totalQuestions = data.total_questions;
+                interviewState.currentQuestionText = data.question;
+                interviewState.currentQuestionType = data.question_type;
+                interviewState.timeRemainingSeconds = data.duration_minutes * 60;
+                interviewState.isPaused = false;
+                interviewState.isEvaluating = false;
+                interviewState.conversationHistory = [];
+                speechState.transcript = '';
+
+                // Update Workspace UI
+                document.getElementById('liveBadgeRole').textContent = data.role;
+                document.getElementById('liveBadgeType').textContent = `${capitalize(data.interview_type)} • ${capitalize(data.difficulty)}`;
+                
+                const modeBadge = document.getElementById('liveBadgeMode');
+                if (modeBadge) {
+                    modeBadge.innerHTML = data.mode === 'voice' 
+                        ? '<i class="fas fa-microphone"></i> Voice Active' 
+                        : '<i class="fas fa-keyboard"></i> Text Mode';
+                }
+
+                const voiceArea = document.getElementById('liveVoiceControlsArea');
+                if (voiceArea) {
+                    voiceArea.style.display = data.mode === 'voice' ? 'flex' : 'none';
+                }
+
+                document.getElementById('liveCurrentQuestionText').textContent = data.question;
+                document.getElementById('liveQuestionTypeTag').textContent = `[${capitalize(data.question_type || data.interview_type)}]`;
+                document.getElementById('liveAnswerInput').value = '';
+                document.getElementById('liveAnswerWordCount').textContent = '0 words';
+                
+                const prevBanner = document.getElementById('livePrevFeedbackBanner');
+                if (prevBanner) prevBanner.style.display = 'none';
+
+                updateProgressUI(data.current_question_index, data.total_questions);
+
+                // Enable Subnav tab
+                const liveTab = document.getElementById('tab-interview-live');
+                if (liveTab) liveTab.style.display = 'inline-flex';
+
+                // Switch view
+                switchInterviewTab('live');
+
+                // Start Timer & Speak question
+                startInterviewTimer();
+                if (data.mode === 'voice') {
+                    speakText(data.question);
+                }
+
+                interviewState.questionStartTime = Date.now();
+
+            } catch (err) {
+                console.error('Error starting interview session:', err);
+                alert('An unexpected error occurred while launching the interview session.');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalHtml;
+            }
+        }
+
+        // 7. Submit Candidate Answer
+        async function submitCandidateAnswer() {
+            if (interviewState.isEvaluating) return;
+
+            const input = document.getElementById('liveAnswerInput');
+            const answer = input ? input.value.trim() : '';
+
+            if (!answer) {
+                alert('Please speak or type your response before submitting.');
+                return;
+            }
+
+            // Stop recording while evaluating
+            if (speechState.isRecording && speechState.recognition) {
+                speechState.isRecording = false;
+                try { speechState.recognition.stop(); } catch(e) {}
+                updateMicUIState('standby');
+            }
+
+            const btn = document.getElementById('btnSubmitAnswer');
+            const indicator = document.getElementById('liveEvaluatingIndicator');
+            interviewState.isEvaluating = true;
+            btn.disabled = true;
+            btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> <span>Evaluating...</span>`;
+            if (indicator) indicator.style.display = 'flex';
+
+            const durationSeconds = interviewState.questionStartTime ? Math.round((Date.now() - interviewState.questionStartTime) / 1000) : 0;
+
+            try {
+                const payload = {
+                    session_token: interviewState.sessionToken,
+                    answer: answer,
+                    duration_seconds: durationSeconds
+                };
+
+                const resp = await fetch('/api/interview/submit_answer', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await resp.json();
+
+                if (!resp.ok || !data.success) {
+                    alert(data.error || 'Failed to evaluate answer. Please try submitting again.');
+                    interviewState.isEvaluating = false;
+                    btn.disabled = false;
+                    btn.innerHTML = `<i class="fas fa-paper-plane"></i> <span>Submit Answer</span>`;
+                    if (indicator) indicator.style.display = 'none';
+                    return;
+                }
+
+                // Add to conversation history
+                interviewState.conversationHistory.push({
+                    question: interviewState.currentQuestionText,
+                    answer: answer,
+                    evaluation: data.previous_evaluation || {}
+                });
+                renderLiveConversationHistory();
+
+                if (data.is_complete) {
+                    // Stop timer and show report
+                    stopInterviewTimer();
+                    const reportTab = document.getElementById('tab-interview-report');
+                    if (reportTab) reportTab.style.display = 'inline-flex';
+                    renderInterviewReport(data.report, data.qa_history, data.session_data);
+                    switchInterviewTab('report');
+                } else {
+                    // Next question arrived
+                    const nextQ = data.next_question;
+                    interviewState.currentQuestionIndex = nextQ.question_index;
+                    interviewState.currentQuestionText = nextQ.question_text;
+                    interviewState.currentQuestionType = nextQ.question_type;
+
+                    document.getElementById('liveCurrentQuestionText').textContent = nextQ.question_text;
+                    document.getElementById('liveQuestionTypeTag').textContent = `[${capitalize(nextQ.question_type)}]`;
+
+                    // Reset answer input
+                    input.value = '';
+                    speechState.transcript = '';
+                    const transcriptDiv = document.getElementById('liveTranscriptDisplay');
+                    if (transcriptDiv) {
+                        transcriptDiv.classList.remove('live');
+                        transcriptDiv.textContent = 'Speak into your microphone. Recognized speech will appear here...';
+                    }
+                    handleAnswerInputUpdate();
+
+                    // Show instant evaluation from previous question
+                    if (data.previous_evaluation) {
+                        const prevBanner = document.getElementById('livePrevFeedbackBanner');
+                        const scoreBadge = document.getElementById('livePrevScoreBadge');
+                        const fbText = document.getElementById('livePrevFeedbackText');
+                        if (prevBanner && scoreBadge && fbText) {
+                            scoreBadge.textContent = `${data.previous_evaluation.score}/100`;
+                            fbText.innerHTML = `<strong>Strengths:</strong> ${data.previous_evaluation.feedback_correct || 'Good effort.'}<br><strong>Missing:</strong> ${data.previous_evaluation.feedback_missing || 'None.'}`;
+                            prevBanner.style.display = 'block';
+                        }
+                    }
+
+                    updateProgressUI(nextQ.question_index, nextQ.total_questions);
+
+                    // Speak next question if voice mode is active
+                    if (interviewState.mode === 'voice') {
+                        speakText(nextQ.question_text);
+                    }
+
+                    interviewState.questionStartTime = Date.now();
+                }
+
+            } catch (err) {
+                console.error('Error submitting answer:', err);
+                alert('A network or server error occurred while processing your response.');
+            } finally {
+                interviewState.isEvaluating = false;
+                btn.disabled = false;
+                btn.innerHTML = `<i class="fas fa-paper-plane"></i> <span>Submit Answer</span>`;
+                if (indicator) indicator.style.display = 'none';
+            }
+        }
+
+        // 8. Progress and Timer UI
+        function updateProgressUI(current, total) {
+            const counterText = document.getElementById('liveProgressCounterText');
+            const percentText = document.getElementById('liveProgressPercentText');
+            const barFill = document.getElementById('liveProgressBarFill');
+
+            const pct = Math.round((current / total) * 100);
+            if (counterText) counterText.textContent = `Question ${current} of ${total}`;
+            if (percentText) percentText.textContent = `${pct}% Completed`;
+            if (barFill) barFill.style.width = `${pct}%`;
+        }
+
+        function startInterviewTimer() {
+            stopInterviewTimer();
+            interviewState.timerInterval = setInterval(() => {
+                if (interviewState.isPaused) return;
+
+                interviewState.timeRemainingSeconds--;
+                updateTimerDisplay(interviewState.timeRemainingSeconds);
+
+                if (interviewState.timeRemainingSeconds <= 0) {
+                    stopInterviewTimer();
+                    alert('Time is up for this interview session! Synthesizing your performance evaluation report...');
+                    confirmEndInterviewEarly(true);
+                }
+            }, 1000);
+            updateTimerDisplay(interviewState.timeRemainingSeconds);
+        }
+
+        function stopInterviewTimer() {
+            if (interviewState.timerInterval) {
+                clearInterval(interviewState.timerInterval);
+                interviewState.timerInterval = null;
+            }
+        }
+
+        function updateTimerDisplay(seconds) {
+            const timerText = document.getElementById('liveTimerText');
+            const badge = document.getElementById('liveTimerBadge');
+            if (!timerText || !badge) return;
+
+            const m = Math.floor(Math.max(0, seconds) / 60);
+            const s = Math.max(0, seconds) % 60;
+            timerText.textContent = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+
+            badge.classList.remove('warning', 'danger');
+            if (seconds <= 30) {
+                badge.classList.add('danger');
+            } else if (seconds <= 120) {
+                badge.classList.add('warning');
+            }
+        }
+
+        // 9. Pause / Resume
+        async function togglePauseInterview() {
+            interviewState.isPaused = !interviewState.isPaused;
+            const btn = document.getElementById('btnLivePauseText');
+            const pauseIcon = document.querySelector('#btnLivePauseToggle i');
+
+            if (interviewState.isPaused) {
+                if (btn) btn.textContent = 'Resume';
+                if (pauseIcon) pauseIcon.className = 'fas fa-play';
+                if (speechState.synth) speechState.synth.cancel();
+                if (speechState.isRecording && speechState.recognition) {
+                    speechState.isRecording = false;
+                    try { speechState.recognition.stop(); } catch(e) {}
+                    updateMicUIState('standby');
+                }
+                await fetch('/api/interview/pause', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ session_token: interviewState.sessionToken })
+                });
+            } else {
+                if (btn) btn.textContent = 'Pause';
+                if (pauseIcon) pauseIcon.className = 'fas fa-pause';
+                await fetch('/api/interview/resume', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ session_token: interviewState.sessionToken })
+                });
+            }
+        }
+
+        // 10. End Session Early
+        async function confirmEndInterviewEarly(force = false) {
+            if (!force) {
+                const conf = confirm('Are you sure you want to conclude this interview session now? A comprehensive performance report will be generated based on answers submitted so far.');
+                if (!conf) return;
+            }
+
+            stopInterviewTimer();
+            if (speechState.synth) speechState.synth.cancel();
+            if (speechState.isRecording && speechState.recognition) {
+                speechState.isRecording = false;
+                try { speechState.recognition.stop(); } catch(e) {}
+            }
+
+            try {
+                const resp = await fetch('/api/interview/finish', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ session_token: interviewState.sessionToken })
+                });
+
+                const data = await resp.json();
+                if (data.success) {
+                    const reportTab = document.getElementById('tab-interview-report');
+                    if (reportTab) reportTab.style.display = 'inline-flex';
+                    renderInterviewReport(data.report, data.qa_history, data.session_data);
+                    switchInterviewTab('report');
+                } else {
+                    alert(data.error || 'Failed to finalize session.');
+                }
+            } catch (err) {
+                console.error('Error ending interview:', err);
+            }
+        }
+
+        // 11. Render Conversation History in Live Workspace
+        function toggleLiveConvHistory() {
+            const content = document.getElementById('liveConvHistoryContent');
+            const arrow = document.getElementById('liveConvArrow');
+            if (!content || !arrow) return;
+            const isHidden = content.style.display === 'none';
+            content.style.display = isHidden ? 'block' : 'none';
+            arrow.className = isHidden ? 'fas fa-chevron-up' : 'fas fa-chevron-down';
+        }
+
+        function renderLiveConversationHistory() {
+            const count = document.getElementById('liveConvItemCount');
+            const container = document.getElementById('liveConvHistoryContent');
+            if (count) count.textContent = interviewState.conversationHistory.length;
+            if (!container) return;
+
+            let html = '';
+            interviewState.conversationHistory.forEach((item, idx) => {
+                html += `
+                    <div style="margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.06);">
+                        <div style="color: #60a5fa; font-weight: 600; font-size: 0.85rem; margin-bottom: 4px;">
+                            Q${idx + 1}: ${escapeHtml(item.question)}
+                        </div>
+                        <div style="color: #cbd5e1; font-size: 0.82rem; margin-bottom: 6px; padding-left: 10px; border-left: 2px solid rgba(255,255,255,0.15);">
+                            "${escapeHtml(item.answer)}"
+                        </div>
+                        <div style="font-size: 0.78rem; color: #34d399;">
+                            Score: ${item.evaluation.score || 70}/100 • ${escapeHtml(item.evaluation.feedback_correct || '')}
+                        </div>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+        }
+
+        // 12. Render Comprehensive Report
+        function renderInterviewReport(report, qaHistory, sessionData) {
+            currentActiveReport = { report, qaHistory, sessionData };
+
+            document.getElementById('rptOverallScore').textContent = report.overall_score || 70;
+            document.getElementById('rptCandidateRoleTitle').textContent = `${sessionData.job_role || 'Target Role'} Assessment`;
+            document.getElementById('rptMetaInfo').textContent = `${capitalize(sessionData.interview_type || 'technical')} • ${capitalize(sessionData.difficulty || 'intermediate')} • Completed on ${sessionData.completed_at || 'Today'}`;
+
+            // Metric Bars
+            setMetricBar('rptScoreTech', 'rptBarTech', report.technical_score || 70);
+            setMetricBar('rptScoreRelevance', 'rptBarRelevance', report.relevance_score || 75);
+            setMetricBar('rptScoreClarity', 'rptBarClarity', report.clarity_score || 70);
+            setMetricBar('rptScoreProblem', 'rptBarProblem', report.problem_solving_score || 72);
+
+            // Summary
+            document.getElementById('rptSummaryStatement').textContent = report.summary_statement || 'Demonstrated solid understanding of core concepts.';
+
+            // Strengths List
+            const strList = document.getElementById('rptStrengthsList');
+            if (strList) {
+                let html = '';
+                (report.strengths || []).forEach(s => {
+                    html += `<li><i class="fas fa-check" style="color: #22c55e; margin-right: 6px;"></i> ${escapeHtml(s)}</li>`;
+                });
+                strList.innerHTML = html || '<li><i class="fas fa-check"></i> Demonstrated good technical engagement.</li>';
+            }
+
+            // Missing Concepts List
+            const missList = document.getElementById('rptMissingList');
+            if (missList) {
+                let html = '';
+                (report.missing_concepts || []).forEach(m => {
+                    html += `<li><i class="fas fa-info-circle" style="color: #f59e0b; margin-right: 6px;"></i> ${escapeHtml(m)}</li>`;
+                });
+                missList.innerHTML = html || '<li><i class="fas fa-info-circle"></i> Continue practicing production edge cases.</li>';
+            }
+
+            // Recommended Topics
+            const topicsContainer = document.getElementById('rptStudyTopicsContainer');
+            if (topicsContainer) {
+                let html = '';
+                (report.study_topics || []).forEach(t => {
+                    html += `<span class="badge" style="background: rgba(37,99,235,0.2); color: #93c5fd; padding: 6px 14px; border-radius: 20px; font-size: 0.82rem; border: 1px solid rgba(96,165,250,0.3); font-weight: 500;"><i class="fas fa-book-reader"></i> ${escapeHtml(t)}</span>`;
+                });
+                topicsContainer.innerHTML = html;
+            }
+
+            // 7-Day Prep Roadmap
+            const timelineContainer = document.getElementById('rptPrepTimeline');
+            if (timelineContainer) {
+                let html = '';
+                (report.prep_plan || []).forEach(step => {
+                    html += `
+                        <div class="prep-step">
+                            <span class="prep-step-badge">${escapeHtml(step.day)}</span>
+                            <div style="font-size: 0.88rem; color: #cbd5e1;">${escapeHtml(step.focus)}</div>
+                        </div>
+                    `;
+                });
+                timelineContainer.innerHTML = html;
+            }
+
+            // Question-by-Question Breakdown
+            const qaAccordion = document.getElementById('rptQaAccordion');
+            if (qaAccordion) {
+                let html = '';
+                (qaHistory || []).forEach((qa, idx) => {
+                    html += `
+                        <div style="border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; overflow: hidden; background: rgba(15,23,42,0.5);">
+                            <div style="padding: 12px 18px; background: rgba(15,23,42,0.7); display: flex; justify-content: space-between; align-items: center; cursor: pointer;" onclick="toggleAccordion('qa-acc-${idx}')">
+                                <span style="font-weight: 600; font-size: 0.9rem; color: #f8fafc;">
+                                    Q${qa.question_index || (idx + 1)}: ${escapeHtml((qa.question_text || '').substring(0, 80))}...
+                                </span>
+                                <span style="background: rgba(37,99,235,0.25); color: #93c5fd; padding: 2px 10px; border-radius: 12px; font-weight: 700; font-size: 0.8rem;">
+                                    ${qa.evaluation_score || 70}/100
+                                </span>
+                            </div>
+                            <div id="qa-acc-${idx}" style="padding: 16px; border-top: 1px solid rgba(255,255,255,0.05); font-size: 0.85rem; display: block;">
+                                <div style="margin-bottom: 8px;">
+                                    <strong style="color: #94a3b8;">Question:</strong> <span style="color: #f8fafc;">${escapeHtml(qa.question_text || '')}</span>
+                                </div>
+                                <div style="margin-bottom: 10px;">
+                                    <strong style="color: #94a3b8;">Candidate Response:</strong> <span style="color: #cbd5e1;">"${escapeHtml(qa.candidate_answer || 'No response provided.')}"</span>
+                                </div>
+                                <div style="margin-bottom: 6px; color: #34d399;">
+                                    <strong>✓ Strengths:</strong> ${escapeHtml(qa.feedback_correct || 'Addressed foundational concept.')}
+                                </div>
+                                <div style="margin-bottom: 6px; color: #fbbf24;">
+                                    <strong>• Missing Concepts:</strong> ${escapeHtml(qa.feedback_missing || 'Deeper discussion of production trade-offs.')}
+                                </div>
+                                <div style="color: #38bdf8; padding-top: 6px; border-top: 1px dashed rgba(255,255,255,0.06);">
+                                    <strong>💡 Model Answer Guidance:</strong> ${escapeHtml(qa.suggested_answer || '')}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+                qaAccordion.innerHTML = html;
+            }
+
+            // PDF Download Link
+            const pdfBtn = document.getElementById('btnDownloadPdfReportLink');
+            if (pdfBtn && sessionData.session_token) {
+                pdfBtn.href = `/api/interview/report/${sessionData.session_token}/pdf`;
+                pdfBtn.target = '_blank';
+            }
+        }
+
+        function setMetricBar(scoreElemId, barFillId, val) {
+            const scoreElem = document.getElementById(scoreElemId);
+            const barFill = document.getElementById(barFillId);
+            if (scoreElem) scoreElem.textContent = `${val}%`;
+            if (barFill) barFill.style.width = `${val}%`;
+        }
+
+        function toggleAccordion(id) {
+            const elem = document.getElementById(id);
+            if (elem) {
+                elem.style.display = (elem.style.display === 'none') ? 'block' : 'none';
+            }
+        }
+
+        function resetToNewInterview() {
+            switchInterviewTab('config');
+        }
+
+        // 13. Interview History Management
+        async function loadInterviewHistory() {
+            const tbody = document.getElementById('interviewHistoryTableBody');
+            if (!tbody) return;
+
+            tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 25px; color: var(--text-muted);"><i class="fas fa-circle-notch fa-spin"></i> Loading interview records...</td></tr>`;
+
+            try {
+                const resp = await fetch('/api/interview/history');
+                const data = await resp.json();
+
+                if (!data.success || !data.history || data.history.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 30px; color: var(--text-muted);"><i class="fas fa-headset fa-2x" style="opacity: 0.5; margin-bottom: 10px;"></i><br>No interview sessions found yet. Start your first AI mock interview to track progress!</td></tr>`;
+                    return;
+                }
+
+                let html = '';
+                data.history.forEach(item => {
+                    const scoreDisplay = item.overall_score ? `<span style="font-weight: 700; color: #34d399;">${item.overall_score}/100</span>` : '<span style="color: var(--text-muted);">--</span>';
+                    const statusClass = item.status === 'completed' ? 'badge-success' : 'badge-warning';
+                    const statusText = capitalize(item.status || 'in_progress');
+
+                    html += `
+                        <tr>
+                            <td style="font-size: 0.82rem; color: #cbd5e1;">${escapeHtml((item.started_at || '').substring(0, 16))}</td>
+                            <td><strong style="color: #fff;">${escapeHtml(item.job_role)}</strong><br><small style="color: var(--text-muted); text-transform: uppercase;">${escapeHtml(item.interview_type)}</small></td>
+                            <td><span style="font-size: 0.82rem; color: #cbd5e1;">${capitalize(item.difficulty)}</span></td>
+                            <td><span style="font-size: 0.82rem; color: #cbd5e1;"><i class="${item.interview_mode === 'voice' ? 'fas fa-microphone' : 'fas fa-keyboard'}"></i> ${capitalize(item.interview_mode)}</span></td>
+                            <td>${scoreDisplay}</td>
+                            <td><span class="badge" style="padding: 3px 8px; font-size: 0.75rem; border-radius: 6px; background: ${item.status === 'completed' ? 'rgba(34,197,94,0.15)' : 'rgba(245,158,11,0.15)'}; color: ${item.status === 'completed' ? '#4ade80' : '#fbbf24'};">${statusText}</span></td>
+                            <td style="text-align: right; white-space: nowrap;">
+                                ${item.status === 'completed' ? `
+                                    <button class="btn btn-secondary" onclick="viewHistoryReport('${item.session_token}')" style="padding: 5px 10px; font-size: 0.78rem; margin-right: 4px;">
+                                        <i class="fas fa-chart-bar"></i> Report
+                                    </button>
+                                    <a href="/api/interview/report/${item.session_token}/pdf" target="_blank" class="btn btn-outline" style="padding: 5px 10px; font-size: 0.78rem; margin-right: 4px; text-decoration: none;">
+                                        <i class="fas fa-file-pdf"></i> PDF
+                                    </a>
+                                ` : `
+                                    <button class="btn btn-primary" onclick="resumeHistorySession('${item.session_token}')" style="padding: 5px 10px; font-size: 0.78rem; margin-right: 4px;">
+                                        <i class="fas fa-play"></i> Resume
+                                    </button>
+                                `}
+                                <button class="btn btn-outline" onclick="deleteHistorySession('${item.session_token}')" style="padding: 5px 8px; font-size: 0.78rem; color: #f87171; border-color: rgba(239,68,68,0.3);">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                });
+                tbody.innerHTML = html;
+            } catch (err) {
+                console.error('Error loading history:', err);
+                tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: #ef4444; padding: 20px;">Failed to load interview history records.</td></tr>`;
+            }
+        }
+
+        async function viewHistoryReport(sessionToken) {
+            try {
+                const resp = await fetch(`/api/interview/report/${sessionToken}`);
+                const data = await resp.json();
+                if (data.success) {
+                    const reportTab = document.getElementById('tab-interview-report');
+                    if (reportTab) reportTab.style.display = 'inline-flex';
+                    renderInterviewReport(data.report, data.qa_history, data.session_data);
+                    switchInterviewTab('report');
+                } else {
+                    alert(data.error || 'Failed to retrieve report.');
+                }
+            } catch (err) {
+                console.error('Error viewing history report:', err);
+            }
+        }
+
+        async function resumeHistorySession(sessionToken) {
+            try {
+                const resp = await fetch('/api/interview/resume', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ session_token: sessionToken })
+                });
+                const data = await resp.json();
+                if (data.success) {
+                    interviewState.sessionToken = data.session_token;
+                    interviewState.role = data.role;
+                    interviewState.interviewType = data.interview_type;
+                    interviewState.difficulty = data.difficulty;
+                    interviewState.currentQuestionIndex = data.current_question_index;
+                    interviewState.totalQuestions = data.total_questions;
+                    interviewState.currentQuestionText = data.question;
+                    interviewState.currentQuestionType = data.question_type;
+                    interviewState.isPaused = false;
+                    interviewState.timeRemainingSeconds = 600; // Reset safe remaining
+
+                    document.getElementById('liveBadgeRole').textContent = data.role;
+                    document.getElementById('liveBadgeType').textContent = `${capitalize(data.interview_type)} • ${capitalize(data.difficulty)}`;
+                    document.getElementById('liveCurrentQuestionText').textContent = data.question;
+                    document.getElementById('liveQuestionTypeTag').textContent = `[${capitalize(data.question_type)}]`;
+                    document.getElementById('liveAnswerInput').value = '';
+                    
+                    updateProgressUI(data.current_question_index, data.total_questions);
+
+                    const liveTab = document.getElementById('tab-interview-live');
+                    if (liveTab) liveTab.style.display = 'inline-flex';
+                    switchInterviewTab('live');
+                    startInterviewTimer();
+                } else {
+                    alert(data.error || 'Failed to resume session.');
+                }
+            } catch (err) {
+                console.error('Error resuming session:', err);
+            }
+        }
+
+        async function deleteHistorySession(sessionToken) {
+            const conf = confirm('Are you sure you want to delete this interview record? This action cannot be undone.');
+            if (!conf) return;
+
+            try {
+                const resp = await fetch(`/api/interview/session/${sessionToken}`, { method: 'DELETE' });
+                const data = await resp.json();
+                if (data.success) {
+                    loadInterviewHistory();
+                } else {
+                    alert(data.error || 'Failed to delete record.');
+                }
+            } catch (err) {
+                console.error('Error deleting session:', err);
+            }
+        }
+
+        // Helper Utilities
+        function capitalize(s) {
+            if (!s) return '';
+            return s.charAt(0).toUpperCase() + s.slice(1);
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+    </script>
 </body>
 </html>
