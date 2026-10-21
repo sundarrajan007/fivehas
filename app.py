@@ -1,4 +1,5 @@
 import os
+import re
 import sqlite3
 import logging
 import io
@@ -18,7 +19,13 @@ from resume_parser import parse_resume
 from resume_analyzer import analyze_resume_content
 from resume_generator import generate_improved_resume_pdf
 from chatbot_service import process_chat_message
-from job_recommender import get_recommended_jobs_for_student, CAREER_TRACKS
+from job_recommender import (
+    get_recommended_jobs_for_student,
+    CAREER_TRACKS,
+    get_career_path_analysis,
+    get_recommended_courses_for_student,
+    init_extended_jobs_db
+)
 
 # Load environment variables
 load_dotenv()
@@ -238,6 +245,10 @@ def init_db():
         conn.commit()
         conn.close()
         logger.info("Database checked/initialized")
+        try:
+            init_extended_jobs_db()
+        except Exception as ej_err:
+            logger.error(f"Error calling init_extended_jobs_db: {ej_err}")
     except Exception as e:
         logger.error(f"DB Init Error: {e}")
 
@@ -336,7 +347,7 @@ def test():
 def health():
     return jsonify({
         "status": "healthy",
-        "service": "Fivehas Smart Career Guidance & Employment Portal",
+        "service": "SkillMatch AI - AI Job Recommendation & Career Guidance System",
         "database": os.path.exists(DB_PATH),
         "ai_model": model is not None,
         "timestamp": datetime.now().isoformat()
@@ -516,13 +527,13 @@ def send_password_reset_email(target_email, reset_url):
             logger.error("Email configuration using placeholder values")
             return False
 
-        subject = "Password Reset - Smart Career Guidance & Employment Portal"
+        subject = "Password Reset - SkillMatch AI"
         html_body = f"""
         <html>
         <body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
             <div style="background: linear-gradient(135deg, #2563eb, #3b82f6); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
                 <h1 style="margin: 0; font-size: 24px;">Password Reset Request</h1>
-                <p style="margin: 10px 0 0 0; opacity: 0.9;">Smart Career Guidance & Employment Portal</p>
+                <p style="margin: 10px 0 0 0; opacity: 0.9;">SkillMatch AI</p>
             </div>
 
             <div style="background: white; border: 1px solid #e5e7eb; border-radius: 0 0 10px 10px; padding: 30px;">
@@ -605,7 +616,10 @@ def dashboard():
             logger.error(f"Error loading saved resume analysis for user {user_id}: {e}")
 
     if not profile:
+        career_path = None
+        recommended_courses = get_recommended_courses_for_student(user_id, None)
         return render_template("dashboard.html", student=None, needs_profile=True,
+                             career_path=career_path, recommended_courses=recommended_courses,
                              latest_resume_analysis=latest_analysis,
                              show_first_login_alert=session.get('show_first_login_alert', False))
 
@@ -667,6 +681,12 @@ def dashboard():
         profile_completeness = 0
         ats_insights = ["Complete your profile to get personalized insights"]
 
+    # Career Path Analysis & Missing-Skill Course Recommendations
+    career_path = get_career_path_analysis(profile[0]) if (profile and profile[0]) else None
+    primary_track = career_path.get("primary_track") if career_path else None
+    missing_skills = primary_track.get("missing_skills") if primary_track else None
+    recommended_courses = get_recommended_courses_for_student(user_id, missing_skills)
+
     # Get unique course categories
     all_courses = db_fetchall("SELECT * FROM courses ORDER BY id DESC")
     course_categories = []
@@ -679,6 +699,7 @@ def dashboard():
 
     return render_template("dashboard.html", student=profile[0], recommendations=recs,
                            career_tracks=career_tracks, role_counts=role_counts,
+                           career_path=career_path, recommended_courses=recommended_courses,
                            applied_jobs=applied_jobs_map, active_role="all",
                            trends=db_fetchall("SELECT * FROM job_trends ORDER BY id DESC"),
                            courses=all_courses,
@@ -817,12 +838,58 @@ def parse_resume_endpoint():
         except Exception as dbe:
             logger.error(f"Error persisting resume analysis for user {uid}: {dbe}")
 
+        # 4. Synchronize profile and update recommendations automatically
+        try:
+            existing_prof = db_fetchall("SELECT id, full_name, college_name, skills, experience FROM student_profile WHERE user_id=?", (uid,))
+            now_str = datetime.now().strftime("%Y-%m-%d %H:%M")
+            
+            p_name = extracted_data.get("full_name") or (existing_prof[0][1] if existing_prof else "Student")
+            p_reg = extracted_data.get("register_number") or ""
+            p_col = extracted_data.get("college_name") or (existing_prof[0][2] if existing_prof else "")
+            p_batch = extracted_data.get("batch_year") or "2025"
+            p_sem = extracted_data.get("current_semester") or "8"
+            p_skills = extracted_data.get("skills") or (existing_prof[0][3] if existing_prof else "")
+            p_ratings = extracted_data.get("skill_ratings") or ""
+            p_exp = extracted_data.get("experience") or (existing_prof[0][4] if existing_prof else "")
+            p_int = extracted_data.get("interests") or ""
+            p_stack = extracted_data.get("tech_stack") or ""
+            p_loc = extracted_data.get("location") or "India"
+
+            if existing_prof:
+                db_execute("""
+                    UPDATE student_profile SET full_name=?, register_number=?, college_name=?,
+                    batch_year=?, current_semester=?, skills=?, skill_ratings=?, experience=?,
+                    interests=?, tech_stack=?, location=?, created_at=? WHERE user_id=?
+                """, (p_name, p_reg, p_col, p_batch, p_sem, p_skills, p_ratings, p_exp, p_int, p_stack, p_loc, now_str, uid))
+            else:
+                db_execute("""
+                    INSERT INTO student_profile (user_id, full_name, register_number, college_name, batch_year,
+                    current_semester, skills, skill_ratings, experience, interests, tech_stack, location, created_at)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """, (uid, p_name, p_reg, p_col, p_batch, p_sem, p_skills, p_ratings, p_exp, p_int, p_stack, p_loc, now_str))
+
+            # Recompute & update cached recommendations
+            db_execute("DELETE FROM job_recommendations WHERE user_id=?", (uid,))
+            fresh_recs = get_recommended_jobs_for_student(uid, role_filter="all")
+            for r in fresh_recs.get("jobs", []):
+                try:
+                    db_execute("INSERT INTO job_recommendations (user_id, job_id, match_score, match_reason, created_at) VALUES (?,?,?,?,?)",
+                               (uid, r["id"], r["match_decimal"], r["match_reason"], datetime.now().strftime("%Y-%m-%d")))
+                except:
+                    pass
+        except Exception as pe:
+            logger.error(f"Error synchronizing profile from resume for user {uid}: {pe}")
+
+        # Fetch fresh recommendations to return to client
+        updated_recs = get_recommended_jobs_for_student(uid, role_filter="all")
+
         return jsonify({
             "success": True,
-            "message": "Resume uploaded, extracted, and analyzed successfully!",
+            "message": "Resume uploaded, extracted, and analyzed successfully! Profile & recommendations updated.",
             "filename": filename,
             "data": extracted_data,
-            "analysis": analysis_result
+            "analysis": analysis_result,
+            "recommendations": updated_recs.get("jobs", [])
         }), 200
 
     except ValueError as ve:
@@ -916,7 +983,7 @@ def get_latest_resume_analysis():
         return jsonify({"success": False, "error": str(e)}), 500
 
 
-@app.route("/download_improved_resume", methods=["POST"])
+@app.route("/download_improved_resume", methods=["GET", "POST"])
 def download_improved_resume():
     """
     Generates and downloads a clean, professional, ATS-friendly PDF resume
@@ -927,12 +994,12 @@ def download_improved_resume():
 
     uid = session.get("user_id")
     if request.is_json:
-        data = request.get_json()
+        data = request.get_json(silent=True) or {}
     else:
-        data = request.form.to_dict()
+        data = request.form.to_dict() or {}
 
     # If data is empty, fallback to fetching from student_profile in DB
-    if not data or not data.get("full_name"):
+    if not data or not (data.get("full_name") or data.get("skills") or data.get("experience")):
         prof = db_fetchall("SELECT * FROM student_profile WHERE user_id=?", (uid,))
         if prof:
             p = prof[0]
@@ -952,15 +1019,27 @@ def download_improved_resume():
 
     # Also check user table for email if missing
     if not data.get("email"):
-        u = db_fetchall("SELECT email FROM users WHERE id=?", (uid,))
+        u = db_fetchall("SELECT email, username FROM users WHERE id=?", (uid,))
         if u:
             data["email"] = u[0][0]
+            if not data.get("full_name"):
+                data["full_name"] = u[0][1]
+
+    # Validate that we have at least some profile/resume information
+    if not data or not (data.get("full_name") or data.get("skills") or data.get("experience") or data.get("college_name")):
+        if request.is_json:
+            return jsonify({
+                "success": False,
+                "error": "No resume or career profile data found. Please upload your resume or complete your profile first."
+            }), 400
+        flash("No resume or career profile data found. Please upload your resume or complete your profile before downloading an improved resume.", "warning")
+        return redirect(url_for("dashboard") + "#profile")
 
     try:
         pdf_buffer = generate_improved_resume_pdf(data)
         raw_name = data.get("full_name") or "Student"
         safe_name = re.sub(r'[^a-zA-Z0-9_-]', '_', raw_name)
-        download_filename = f"Improved_ATS_Resume_{safe_name}.pdf"
+        download_filename = f"SkillMatch_ATS_Resume_{safe_name}.pdf"
 
         return send_file(
             pdf_buffer,
@@ -1272,7 +1351,7 @@ def apply_job():
 def get_career_recommendations_endpoint():
     """
     API endpoint to fetch personalized, deduplicated job recommendations
-    dynamically filtered by career track / role.
+    dynamically filtered by career track / role, with career path analysis and courses.
     """
     if session.get("role") != "student":
         return jsonify({"success": False, "error": "Unauthorized"}), 401
@@ -1280,6 +1359,17 @@ def get_career_recommendations_endpoint():
     uid = session.get("user_id")
     role_filter = request.args.get("role", "all")
     result = get_recommended_jobs_for_student(uid, role_filter=role_filter)
+    
+    profile = db_fetchall("SELECT * FROM student_profile WHERE user_id=?", (uid,))
+    if profile:
+        result["career_path"] = get_career_path_analysis(profile[0])
+        primary_track = result["career_path"].get("primary_track") if result["career_path"] else None
+        missing_skills = primary_track.get("missing_skills") if primary_track else None
+        result["recommended_courses"] = get_recommended_courses_for_student(uid, missing_skills)
+    else:
+        result["career_path"] = None
+        result["recommended_courses"] = get_recommended_courses_for_student(uid, None)
+        
     return jsonify(result)
 
 

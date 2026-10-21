@@ -45,7 +45,7 @@ def call_external_llm(prompt, history=None, student_context=None):
     # Construct system context
     system_instruction = (
         "You are 'CareerBot', an intelligent, empathetic, and knowledgeable AI career advisor "
-        "and coding mentor for the Smart Career Guidance & Employment Portal. "
+        "and coding mentor for SkillMatch AI. "
         "You help university students and job seekers with programming, career roadmaps, "
         "job recommendations, resume optimization, course selection, and interview prep. "
         "Keep answers well-structured with bullet points or brief code snippets where helpful. "
@@ -251,7 +251,7 @@ def generate_local_response(user_msg, history=None, student_context=None):
     if re.search(r'\b(who\s*are\s*you|what\s*can\s*you\s*do|help|about\s*you)\b', msg_lower) and len(msg_lower.split()) <= 6:
         return (
             "🤖 **About CareerBot**:\n\n"
-            "I am the built-in intelligent career guidance agent for the **Smart Career Guidance & Employment Portal**.\n\n"
+            "I am the built-in intelligent career guidance agent for **SkillMatch AI**.\n\n"
             "**Here is how I can assist you:**\n"
             "1. **Analyze Your Profile**: Recommend roles matching your skills, ratings, and interests.\n"
             "2. **Answer Technical Questions**: Explain code, algorithms, framework concepts, and best practices.\n"

@@ -6,11 +6,11 @@
     <meta name="theme-color" content="#2563eb">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <meta name="apple-mobile-web-app-title" content="Career Portal">
+    <meta name="apple-mobile-web-app-title" content="SkillMatch AI">
     <meta name="mobile-web-app-capable" content="yes">
     <link rel="manifest" href="/static/manifest.json">
     <link rel="apple-touch-icon" href="/static/icon-192.png">
-  <title>Student Dashboard | Smart Career Portal</title>
+  <title>SkillMatch AI | Student Career Dashboard</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
@@ -2320,7 +2320,7 @@
     <!-- Sidebar -->
     <div class="sidebar">
         <div class="sidebar-header">
-            <h2><i class="fas fa-graduation-cap"></i> <span>Smart Career</span></h2>
+            <h2><i class="fas fa-brain" style="color: var(--accent);"></i> <span>SkillMatch AI</span></h2>
         </div>
         <nav class="nav-links">
             <a onclick="showSection('home')" class="nav-item active" id="nav-home">
@@ -3145,6 +3145,73 @@
                         </button>
                     </div>
                 {% else %}
+                    <!-- AI Career Path & Readiness Roadmap Banner -->
+                    {% if career_path and career_path.primary_track %}
+                    <div class="career-path-banner" style="background: linear-gradient(135deg, rgba(37, 99, 235, 0.16), rgba(124, 58, 237, 0.16)); border: 1px solid rgba(96, 165, 250, 0.35); border-radius: 14px; padding: 22px; margin-bottom: 25px;">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px; margin-bottom: 12px;">
+                            <div>
+                                <span style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: var(--accent); letter-spacing: 0.8px;">
+                                    <i class="fas fa-route"></i> Recommended Career Path (Based on Resume)
+                                </span>
+                                <h3 style="margin: 4px 0 6px 0; color: var(--text-light); font-size: 1.3rem;">
+                                    <i class="{{ career_path.primary_track.icon }}" style="color: var(--accent); margin-right: 6px;"></i>
+                                    {{ career_path.primary_track.label }}
+                                </h3>
+                                <p style="color: var(--text-muted); font-size: 0.85rem; margin: 0;">
+                                    Target Career Roles: <strong style="color: #cbd5e1;">{{ career_path.primary_track.target_roles | join('  •  ') }}</strong>
+                                </p>
+                            </div>
+                            <div style="text-align: right; background: rgba(15, 23, 42, 0.6); padding: 8px 16px; border-radius: 10px; border: 1px solid rgba(96, 165, 250, 0.3);">
+                                <div style="font-size: 1.5rem; font-weight: 800; color: #60a5fa;">{{ career_path.primary_track.readiness_pct }}%</div>
+                                <span style="font-size: 0.72rem; color: #94a3b8; font-weight: 600; text-transform: uppercase;">Profile Readiness</span>
+                            </div>
+                        </div>
+
+                        <!-- Skill Overlap Chips -->
+                        <div style="display: flex; flex-wrap: wrap; gap: 16px; margin: 15px 0;">
+                            {% if career_path.primary_track.matched_skills %}
+                            <div style="flex: 1; min-width: 220px;">
+                                <div style="font-size: 0.72rem; font-weight: 700; color: #86efac; margin-bottom: 6px; letter-spacing: 0.5px;">
+                                    <i class="fas fa-check-circle"></i> MATCHED CORE COMPETENCIES
+                                </div>
+                                <div style="display: flex; flex-wrap: wrap; gap: 5px;">
+                                    {% for ms in career_path.primary_track.matched_skills %}
+                                        <span style="background: rgba(34, 197, 94, 0.15); color: #86efac; border: 1px solid rgba(34,197,94,0.3); font-size: 0.75rem; padding: 2px 8px; border-radius: 6px;">✓ {{ ms }}</span>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            {% endif %}
+                            {% if career_path.primary_track.missing_skills %}
+                            <div style="flex: 1; min-width: 220px;">
+                                <div style="font-size: 0.72rem; font-weight: 700; color: #fde047; margin-bottom: 6px; letter-spacing: 0.5px;">
+                                    <i class="fas fa-lightbulb"></i> SKILL GAPS FOR ACCELERATION
+                                </div>
+                                <div style="display: flex; flex-wrap: wrap; gap: 5px;">
+                                    {% for us in career_path.primary_track.missing_skills %}
+                                        <span style="background: rgba(245, 158, 11, 0.15); color: #fde047; border: 1px solid rgba(245,158,11,0.3); font-size: 0.75rem; padding: 2px 8px; border-radius: 6px;">+ {{ us }}</span>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Roadmap Steps -->
+                        {% if career_path.primary_track.roadmap %}
+                        <div style="background: rgba(15, 23, 42, 0.6); border-radius: 10px; padding: 12px 16px; margin-top: 10px; border-left: 3px solid var(--accent);">
+                            <div style="font-size: 0.72rem; font-weight: 700; color: var(--accent); margin-bottom: 6px; letter-spacing: 0.5px;">RECOMMENDED CAREER PATH ROADMAP</div>
+                            <div style="display: flex; flex-direction: column; gap: 5px; font-size: 0.82rem; color: #cbd5e1;">
+                                {% for step in career_path.primary_track.roadmap %}
+                                    <div style="display: flex; align-items: flex-start; gap: 8px;">
+                                        <i class="fas fa-chevron-right" style="color: var(--accent); margin-top: 4px; font-size: 0.68rem;"></i>
+                                        <span>{{ step }}</span>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+
                     <!-- Role Filter Tabs Bar -->
                     <div class="career-role-tabs-bar" style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid rgba(255,255,255,0.08);">
                         <button type="button" class="role-track-tab active" data-role="all" onclick="filterCareerRoles('all', this)">
@@ -3181,16 +3248,30 @@
                         {% if recommendations %}
                             {% for job in recommendations %}
                             <div class="job-card" id="job_card_{{ job.id }}">
-                                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+                                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; flex-wrap: wrap; gap: 6px;">
                                     <span class="match-badge" style="position: static; display: inline-block;">{{ job.match_score }}% Match</span>
-                                    {% if job.applied %}
-                                        <span class="badge-applied" id="badge_applied_{{ job.id }}" style="background: rgba(34, 197, 94, 0.2); color: #86efac; border: 1px solid rgba(34, 197, 94, 0.4); padding: 3px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: 600;">
-                                            <i class="fas fa-check-circle"></i> Applied
-                                        </span>
-                                    {% endif %}
+                                    <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
+                                        {% if job.is_external %}
+                                            <span style="background: rgba(37, 99, 235, 0.2); color: #93c5fd; border: 1px solid rgba(59, 130, 246, 0.4); padding: 2px 8px; border-radius: 10px; font-size: 0.72rem; font-weight: 600;">
+                                                <i class="fas fa-external-link-alt"></i> {{ job.source }}
+                                            </span>
+                                        {% else %}
+                                            <span style="background: rgba(148, 163, 184, 0.15); color: #cbd5e1; border: 1px solid rgba(148, 163, 184, 0.3); padding: 2px 8px; border-radius: 10px; font-size: 0.72rem; font-weight: 600;">
+                                                <i class="fas fa-building"></i> Portal Role
+                                            </span>
+                                        {% endif %}
+                                        {% if job.applied %}
+                                            <span class="badge-applied" id="badge_applied_{{ job.id }}" style="background: rgba(34, 197, 94, 0.2); color: #86efac; border: 1px solid rgba(34, 197, 94, 0.4); padding: 2px 8px; border-radius: 10px; font-size: 0.72rem; font-weight: 600;">
+                                                <i class="fas fa-check-circle"></i> Applied
+                                            </span>
+                                        {% endif %}
+                                    </div>
                                 </div>
                                 <h4 style="margin: 6px 0 4px 0; color: var(--text-light); font-size: 1.05rem;">{{ job.title }}</h4>
-                                <p style="color: var(--accent); font-weight: 500; font-size: 0.88rem; margin-bottom: 8px;">🏢 {{ job.company }}</p>
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-size: 0.85rem;">
+                                    <span style="color: var(--accent); font-weight: 500;">🏢 {{ job.company }}</span>
+                                    <span style="color: var(--text-muted); font-size: 0.78rem;"><i class="fas fa-map-marker-alt"></i> {{ job.location or 'India' }}</span>
+                                </div>
                                 <p style="font-size: 0.84rem; color: #cbd5e1; line-height: 1.4; margin-bottom: 12px;">{{ job.description[:130] }}{{ '...' if job.description|length > 130 else '' }}</p>
 
                                 <!-- Skill Compatibility Analysis -->
@@ -3221,15 +3302,17 @@
                                         <button type="button" class="btn btn-secondary" disabled style="width: 100%; justify-content: center; background: rgba(34, 197, 94, 0.15); border: 1px solid rgba(34, 197, 94, 0.4); color: #86efac; font-size: 0.82rem; cursor: default;">
                                             <i class="fas fa-check-double"></i> Applied on {{ job.applied_at[:10] if job.applied_at else 'Portal' }}
                                         </button>
+                                    {% elif job.is_external and job.application_link %}
+                                        <a href="{{ job.application_link }}" target="_blank" rel="noopener noreferrer" class="btn btn-primary" style="flex: 1; justify-content: center; font-size: 0.84rem; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+                                            <i class="fas fa-external-link-alt"></i> Apply on {{ job.company }}
+                                        </a>
+                                        <button type="button" onclick="recordExternalApplication('{{ job.id }}', '{{ job.title|replace('\'', '\\\'') }}', '{{ job.company|replace('\'', '\\\'') }}')" class="btn btn-outline" style="border: 1px solid rgba(255,255,255,0.2); color: var(--accent); padding: 8px 12px; font-size: 0.8rem; border-radius: 8px;" title="Mark as Applied on Portal">
+                                            <i class="fas fa-check"></i> Track
+                                        </button>
                                     {% else %}
                                         <button type="button" id="btn_apply_job_{{ job.id }}" onclick="openApplyJobModal('{{ job.id }}', '{{ job.title|replace('\'', '\\\'') }}', '{{ job.company|replace('\'', '\\\'') }}')" class="btn btn-primary" style="flex: 1; justify-content: center; font-size: 0.84rem;">
-                                            <i class="fas fa-paper-plane"></i> Apply Now
+                                            <i class="fas fa-paper-plane"></i> Apply via Portal
                                         </button>
-                                        {% if job.is_external %}
-                                            <a href="{{ job.application_link }}" target="_blank" rel="noopener noreferrer" class="btn btn-outline" style="border: 1px solid rgba(255,255,255,0.2); color: var(--accent); padding: 8px 12px; font-size: 0.82rem; text-decoration: none; border-radius: 8px; display: inline-flex; align-items: center;" title="View official external posting">
-                                                <i class="fas fa-arrow-up-right-from-square"></i>
-                                            </a>
-                                        {% endif %}
                                     {% endif %}
                                 </div>
                             </div>
@@ -3258,9 +3341,59 @@
 
         <!-- COURSES SECTION -->
         <div id="courses" class="dashboard-section">
-    <div class="card">
-                <h3 class="section-title"><i class="fas fa-book-open"></i> Professional Learning Paths</h3>
-                <p style="margin-bottom: 25px; font-size: 0.9rem; color: var(--text-muted);">Click on any section below to explore courses in that domain.</p>
+            <div class="card">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 20px;">
+                    <div>
+                        <h3 class="section-title" style="margin-bottom: 4px;"><i class="fas fa-book-open"></i> Professional Learning Paths &amp; Courses</h3>
+                        <p style="font-size: 0.88rem; color: var(--text-muted); margin: 0;">Targeted course recommendations to close your resume skill gaps and qualify for top jobs.</p>
+                    </div>
+                </div>
+
+                <!-- Resume-Based Recommended Courses Section -->
+                {% if recommended_courses %}
+                <div class="recommended-courses-box" style="background: linear-gradient(135deg, rgba(37, 99, 235, 0.12), rgba(16, 185, 129, 0.12)); border: 1px solid rgba(59, 130, 246, 0.35); border-radius: 12px; padding: 20px; margin-bottom: 30px;">
+                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
+                        <span style="background: rgba(34, 197, 94, 0.2); color: #86efac; border: 1px solid rgba(34, 197, 94, 0.4); padding: 2px 8px; border-radius: 10px; font-size: 0.72rem; font-weight: 700; text-transform: uppercase;">
+                            <i class="fas fa-bullseye"></i> Targeted For Your Profile
+                        </span>
+                        <h4 style="margin: 0; color: var(--text-light); font-size: 1.1rem;">Recommended to Close Your Skill Gaps</h4>
+                    </div>
+                    <p style="color: var(--text-muted); font-size: 0.84rem; margin-bottom: 15px;">
+                        These verified external courses directly target skills missing from your resume that are required by your top-matched jobs.
+                    </p>
+
+                    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 15px;">
+                        {% for rc in recommended_courses %}
+                        <div class="course-card" style="background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 10px; padding: 15px; display: flex; flex-direction: column; justify-content: space-between;">
+                            <div>
+                                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+                                    <span style="background: rgba(245, 158, 11, 0.15); color: #fde047; border: 1px solid rgba(245, 158, 11, 0.3); font-size: 0.7rem; padding: 2px 6px; border-radius: 4px; font-weight: 600;">
+                                        Skill: {{ rc.skill_addressed }}
+                                    </span>
+                                    <span style="font-size: 0.72rem; color: #86efac; font-weight: 600;">
+                                        <i class="fas fa-check-circle"></i> Verified Provider
+                                    </span>
+                                </div>
+                                <h4 style="margin: 0 0 6px 0; color: var(--text-light); font-size: 0.95rem; line-height: 1.3;">{{ rc.title }}</h4>
+                                <div style="font-size: 0.78rem; color: var(--accent); margin-bottom: 8px;">
+                                    <i class="fas fa-university"></i> {{ rc.provider }}
+                                </div>
+                                <p style="font-size: 0.8rem; color: #94a3b8; line-height: 1.35; margin-bottom: 12px;">{{ rc.reason }}</p>
+                            </div>
+                            <a href="{{ rc.url }}" target="_blank" rel="noopener noreferrer" class="btn btn-primary" style="padding: 8px 14px; font-size: 0.82rem; text-decoration: none; justify-content: center; display: inline-flex; align-items: center; gap: 6px;">
+                                <i class="fas fa-graduation-cap"></i> Learn / Enroll <i class="fas fa-external-link-alt" style="font-size: 0.7rem;"></i>
+                            </a>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Full Course Catalog Title -->
+                <h4 style="color: var(--text-light); margin-bottom: 15px; font-size: 1.05rem;">
+                    <i class="fas fa-th-large" style="color: var(--accent); margin-right: 6px;"></i> Explore All Course Categories
+                </h4>
+                <p style="margin-bottom: 25px; font-size: 0.85rem; color: var(--text-muted);">Click on any section below to explore courses in that domain.</p>
 
                 <!-- Check if any categories have content -->
                 {% if course_categories %}
@@ -4123,16 +4256,30 @@
 
             return `
                 <div class="job-card" id="job_card_${job.id}">
-                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; flex-wrap: wrap; gap: 6px;">
                         <span class="match-badge" style="position: static; display: inline-block;">${job.match_score}% Match</span>
-                        ${job.applied ? `
-                            <span class="badge-applied" id="badge_applied_${job.id}" style="background: rgba(34, 197, 94, 0.2); color: #86efac; border: 1px solid rgba(34, 197, 94, 0.4); padding: 3px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: 600;">
-                                <i class="fas fa-check-circle"></i> Applied
-                            </span>
-                        ` : ''}
+                        <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
+                            ${job.is_external ? `
+                                <span style="background: rgba(37, 99, 235, 0.2); color: #93c5fd; border: 1px solid rgba(59, 130, 246, 0.4); padding: 2px 8px; border-radius: 10px; font-size: 0.72rem; font-weight: 600;">
+                                    <i class="fas fa-external-link-alt"></i> ${escapeHtml(job.source || 'Verified External')}
+                                </span>
+                            ` : `
+                                <span style="background: rgba(148, 163, 184, 0.15); color: #cbd5e1; border: 1px solid rgba(148, 163, 184, 0.3); padding: 2px 8px; border-radius: 10px; font-size: 0.72rem; font-weight: 600;">
+                                    <i class="fas fa-building"></i> Portal Role
+                                </span>
+                            `}
+                            ${job.applied ? `
+                                <span class="badge-applied" id="badge_applied_${job.id}" style="background: rgba(34, 197, 94, 0.2); color: #86efac; border: 1px solid rgba(34, 197, 94, 0.4); padding: 2px 8px; border-radius: 10px; font-size: 0.72rem; font-weight: 600;">
+                                    <i class="fas fa-check-circle"></i> Applied
+                                </span>
+                            ` : ''}
+                        </div>
                     </div>
                     <h4 style="margin: 6px 0 4px 0; color: var(--text-light); font-size: 1.05rem;">${escapeHtml(job.title)}</h4>
-                    <p style="color: var(--accent); font-weight: 500; font-size: 0.88rem; margin-bottom: 8px;">🏢 ${escapeHtml(job.company)}</p>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-size: 0.85rem;">
+                        <span style="color: var(--accent); font-weight: 500;">🏢 ${escapeHtml(job.company)}</span>
+                        <span style="color: var(--text-muted); font-size: 0.78rem;"><i class="fas fa-map-marker-alt"></i> ${escapeHtml(job.location || 'India')}</span>
+                    </div>
                     <p style="font-size: 0.84rem; color: #cbd5e1; line-height: 1.4; margin-bottom: 12px;">${escapeHtml(job.description.substring(0, 130))}${job.description.length > 130 ? '...' : ''}</p>
 
                     <!-- Skill Compatibility Analysis -->
@@ -4163,15 +4310,17 @@
                             <button type="button" class="btn btn-secondary" disabled style="width: 100%; justify-content: center; background: rgba(34, 197, 94, 0.15); border: 1px solid rgba(34, 197, 94, 0.4); color: #86efac; font-size: 0.82rem; cursor: default;">
                                 <i class="fas fa-check-double"></i> Applied on ${escapeHtml((job.applied_at || 'Portal').substring(0, 10))}
                             </button>
+                        ` : (job.is_external && job.application_link) ? `
+                            <a href="${escapeHtml(job.application_link)}" target="_blank" rel="noopener noreferrer" class="btn btn-primary" style="flex: 1; justify-content: center; font-size: 0.84rem; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+                                <i class="fas fa-external-link-alt"></i> Apply on ${escapeHtml(job.company)}
+                            </a>
+                            <button type="button" onclick="recordExternalApplication('${job.id}', '${safeTitle}', '${safeCompany}')" class="btn btn-outline" style="border: 1px solid rgba(255,255,255,0.2); color: var(--accent); padding: 8px 12px; font-size: 0.8rem; border-radius: 8px;" title="Mark as Applied on Portal">
+                                <i class="fas fa-check"></i> Track
+                            </button>
                         ` : `
                             <button type="button" id="btn_apply_job_${job.id}" onclick="openApplyJobModal('${job.id}', '${safeTitle}', '${safeCompany}')" class="btn btn-primary" style="flex: 1; justify-content: center; font-size: 0.84rem;">
-                                <i class="fas fa-paper-plane"></i> Apply Now
+                                <i class="fas fa-paper-plane"></i> Apply via Portal
                             </button>
-                            ${job.is_external ? `
-                                <a href="${escapeHtml(job.application_link)}" target="_blank" rel="noopener noreferrer" class="btn btn-outline" style="border: 1px solid rgba(255,255,255,0.2); color: var(--accent); padding: 8px 12px; font-size: 0.82rem; text-decoration: none; border-radius: 8px; display: inline-flex; align-items: center;" title="View official external posting">
-                                    <i class="fas fa-arrow-up-right-from-square"></i>
-                                </a>
-                            ` : ''}
                         `}
                     </div>
                 </div>
@@ -5048,6 +5197,32 @@
             }
         }
 
+        // Record External Application
+        async function recordExternalApplication(jobId, jobTitle, company) {
+            try {
+                const response = await fetch('/apply_job', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ job_id: jobId, cover_note: 'Applied through verified external careers portal.' })
+                });
+                const res = await response.json();
+                if (res.success || res.already_applied) {
+                    showResumeAlert(`✓ Application for '${jobTitle}' tracked in your dashboard!`, 'success');
+                    const card = document.getElementById(`job_card_${jobId}`);
+                    if (card) {
+                        const trackBtn = card.querySelector(`[onclick*="recordExternalApplication('${jobId}'"]`);
+                        if (trackBtn) {
+                            trackBtn.innerHTML = '<i class="fas fa-check-double"></i> Tracked';
+                            trackBtn.disabled = true;
+                            trackBtn.style.color = '#86efac';
+                        }
+                    }
+                }
+            } catch (err) {
+                console.error('Error tracking application:', err);
+            }
+        }
+
         // Download Improved Resume PDF
         function downloadImprovedResume() {
             const form = document.createElement('form');
@@ -5062,21 +5237,31 @@
                 'prof_tech_stack', 'prof_experience'
             ];
 
+            let hasAnyData = false;
             fields.forEach(fId => {
                 const elem = document.getElementById(fId);
                 if (elem) {
                     const input = document.createElement('input');
                     input.type = 'hidden';
                     input.name = elem.name;
-                    input.value = elem.value;
+                    input.value = elem.value || '';
+                    if (elem.value && elem.value.trim()) {
+                        hasAnyData = true;
+                    }
                     form.appendChild(input);
                 }
             });
 
+            // If completely empty and no profile, alert user
+            if (!hasAnyData && (!currentAnalysisData || Object.keys(currentAnalysisData).length === 0)) {
+                showResumeAlert('Please upload your resume or complete your Career Profile before downloading an improved resume.', 'warning');
+                return;
+            }
+
             document.body.appendChild(form);
             form.submit();
             document.body.removeChild(form);
-            showResumeAlert('Downloading improved ATS-compliant PDF resume...', 'info');
+            showResumeAlert('Generating & downloading your improved ATS-compliant PDF resume...', 'info');
         }
 
         function escapeHtml(text) {

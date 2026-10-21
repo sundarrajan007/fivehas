@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Smart Career Guidance & Employment Portal - AI-Powered Career Guidance</title>
+  <title>SkillMatch AI — AI-Powered Job Recommendation & Career Guidance System</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
   <style>
@@ -286,6 +286,181 @@
       background: rgba(37, 99, 235, 0.1);
       border-color: var(--primary-blue);
       color: var(--primary-blue);
+    }
+
+    /* Profile Navigation & Dropdown Menu */
+    .profile-dropdown-container {
+      position: relative;
+      display: inline-block;
+    }
+
+    .profile-icon-btn {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 14px;
+      background: rgba(37, 99, 235, 0.08);
+      border: 1.5px solid rgba(37, 99, 235, 0.25);
+      border-radius: 30px;
+      color: var(--text-dark);
+      cursor: pointer;
+      font-size: 13.5px;
+      font-weight: 600;
+      transition: all 0.25s ease;
+      text-decoration: none;
+    }
+
+    body.dark-mode .profile-icon-btn {
+      background: rgba(30, 41, 59, 0.85);
+      border-color: rgba(148, 163, 184, 0.25);
+      color: #f1f5f9;
+    }
+
+    .profile-icon-btn:hover {
+      background: rgba(37, 99, 235, 0.15);
+      border-color: var(--primary-blue);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 15px rgba(37, 99, 235, 0.2);
+    }
+
+    .profile-icon-btn .profile-avatar {
+      font-size: 18px;
+      color: var(--primary-blue);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .profile-icon-btn .profile-chevron {
+      font-size: 10px;
+      color: var(--text-light);
+      transition: transform 0.2s ease;
+    }
+
+    .profile-icon-btn.active .profile-chevron {
+      transform: rotate(180deg);
+    }
+
+    .profile-dropdown-menu {
+      display: none;
+      position: absolute;
+      top: calc(100% + 10px);
+      right: 0;
+      width: 250px;
+      background: rgba(255, 255, 255, 0.98);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(0, 0, 0, 0.08);
+      border-radius: 16px;
+      box-shadow: 0 12px 35px rgba(0, 0, 0, 0.15);
+      padding: 12px;
+      z-index: 1001;
+      animation: dropdownFadeIn 0.2s ease-out;
+    }
+
+    body.dark-mode .profile-dropdown-menu {
+      background: rgba(15, 23, 42, 0.98);
+      border-color: rgba(255, 255, 255, 0.1);
+      box-shadow: 0 12px 35px rgba(0, 0, 0, 0.45);
+    }
+
+    .profile-dropdown-menu.show {
+      display: block;
+    }
+
+    @keyframes dropdownFadeIn {
+      from { opacity: 0; transform: translateY(-8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .profile-menu-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 8px 10px;
+    }
+
+    .profile-menu-header .avatar-large {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary-blue), var(--secondary-purple));
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+    }
+
+    .profile-menu-header .user-info {
+      overflow: hidden;
+    }
+
+    .profile-menu-header .user-display-name {
+      font-weight: 700;
+      font-size: 13.5px;
+      color: var(--text-dark);
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      overflow: hidden;
+    }
+
+    body.dark-mode .profile-menu-header .user-display-name {
+      color: #f1f5f9;
+    }
+
+    .profile-menu-header .user-role-badge {
+      font-size: 10px;
+      color: var(--primary-blue);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .profile-menu-divider {
+      height: 1px;
+      background: rgba(0, 0, 0, 0.08);
+      margin: 8px 0;
+    }
+
+    body.dark-mode .profile-menu-divider {
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .profile-menu-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 12px;
+      color: var(--text-dark);
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 500;
+      border-radius: 10px;
+      transition: all 0.2s ease;
+    }
+
+    body.dark-mode .profile-menu-item {
+      color: #cbd5e1;
+    }
+
+    .profile-menu-item:hover {
+      background: rgba(37, 99, 235, 0.08);
+      color: var(--primary-blue);
+      transform: translateX(3px);
+    }
+
+    body.dark-mode .profile-menu-item:hover {
+      background: rgba(37, 99, 235, 0.2);
+      color: #93c5fd;
+    }
+
+    .profile-menu-item.logout-item {
+      color: #ef4444 !important;
+    }
+
+    .profile-menu-item.logout-item:hover {
+      background: rgba(239, 68, 68, 0.1) !important;
+      color: #dc2626 !important;
     }
 
     /* Hero Section */
@@ -942,11 +1117,28 @@
 
     @media (max-width: 768px) {
       .nav-header {
-        padding: 16px 20px;
+        padding: 14px 20px;
       }
 
       .nav-links {
         display: none;
+      }
+
+      .logo-brand span {
+        font-size: 18px;
+      }
+
+      .profile-icon-btn .profile-username,
+      .profile-icon-btn .profile-chevron {
+        display: none;
+      }
+
+      .profile-icon-btn {
+        padding: 8px;
+        width: 38px;
+        height: 38px;
+        justify-content: center;
+        border-radius: 50%;
       }
 
 
@@ -1021,21 +1213,83 @@
 
   <!-- Navigation Header -->
   <nav class="nav-header">
+    <a href="/" class="logo-brand" style="text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
+      <i class="fas fa-brain" style="font-size: 24px; color: var(--primary-blue);"></i>
+      <span>SkillMatch AI</span>
+    </a>
     <div class="nav-links">
       <a href="#features">Features</a>
       <a href="#stats">Statistics</a>
       <a href="#testimonials">Testimonials</a>
       <a href="#contact">Contact</a>
+      {% if session.get('username') %}
+      <a href="/dashboard">Dashboard</a>
+      <a href="/dashboard#jobs">Jobs</a>
+      {% endif %}
     </div>
     <div class="nav-actions">
+      <!-- Theme Toggle -->
+      <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle Theme" title="Toggle Theme">
+        <i class="fas fa-moon"></i>
+      </button>
+
+      {% if session.get('username') %}
+      <!-- Profile Dropdown Menu for Authenticated User -->
+      <div class="profile-dropdown-container" id="profileDropdownContainer">
+        <button class="profile-icon-btn" id="profileMenuBtn" onclick="toggleProfileMenu(event)" aria-label="User Profile" title="Career Profile">
+          <div class="profile-avatar">
+            <i class="fas fa-user-circle"></i>
+          </div>
+          <span class="profile-username">{{ session.get('username') }}</span>
+          <i class="fas fa-chevron-down profile-chevron"></i>
+        </button>
+        <div class="profile-dropdown-menu" id="profileDropdownMenu">
+          <div class="profile-menu-header">
+            <div class="avatar-large"><i class="fas fa-user-graduate"></i></div>
+            <div class="user-info">
+              <div class="user-display-name">{{ session.get('username') }}</div>
+              <div class="user-role-badge">Student</div>
+            </div>
+          </div>
+          <div class="profile-menu-divider"></div>
+          <a href="/dashboard#profile" class="profile-menu-item">
+            <i class="fas fa-id-card" style="color: var(--primary-blue);"></i>
+            <span>Career Profile</span>
+          </a>
+          <a href="/dashboard" class="profile-menu-item">
+            <i class="fas fa-th-large" style="color: #8b5cf6;"></i>
+            <span>AI Dashboard</span>
+          </a>
+          <a href="/dashboard#jobs" class="profile-menu-item">
+            <i class="fas fa-briefcase" style="color: #10b981;"></i>
+            <span>Job Recommendations</span>
+          </a>
+          <a href="/dashboard#courses" class="profile-menu-item">
+            <i class="fas fa-book-open" style="color: #f59e0b;"></i>
+            <span>Course Recommendations</span>
+          </a>
+          <div class="profile-menu-divider"></div>
+          <a href="/logout" class="profile-menu-item logout-item">
+            <i class="fas fa-sign-out-alt"></i>
+            <span>Sign Out</span>
+          </a>
+        </div>
+      </div>
+      {% else %}
+      <!-- Profile Icon / Guest Access -->
+      <div class="profile-guest-container">
+        <a href="/login" class="profile-icon-btn guest" id="profileGuestBtn" title="Account & Career Profile" aria-label="User Profile">
+          <div class="profile-avatar">
+            <i class="fas fa-user-circle"></i>
+          </div>
+          <span class="profile-username">Profile</span>
+        </a>
+      </div>
       <div class="cta-buttons">
         <a href="/login" class="cta-button secondary">Login</a>
         <a href="/register" class="cta-button primary">Sign Up</a>
       </div>
-      <!-- Theme Toggle -->
-      <button class="theme-toggle" onclick="toggleTheme()">
-        <i class="fas fa-moon"></i>
-      </button>
+      {% endif %}
     </div>
   </nav>
 
@@ -1074,7 +1328,7 @@
   <section id="features" class="features-section">
     <div class="features-container">
       <div class="section-header">
-        <h2 class="section-title">Why Choose Smart Career Guidance & Employment Portal?</h2>
+        <h2 class="section-title">Why Choose SkillMatch AI?</h2>
         <p class="section-subtitle">
           Our platform combines cutting-edge AI technology with personalized career guidance
           to help you achieve your professional goals faster and more effectively.
@@ -1258,8 +1512,8 @@
   <footer id="contact" class="footer">
     <div class="footer-container">
       <div class="footer-section">
-        <h3>Smart Career Guidance & Employment Portal</h3>
-        <p>Empowering students with AI-driven career guidance and personalized learning experiences to achieve their professional goals.</p>
+        <h3>SkillMatch AI</h3>
+        <p>Empowering students and job seekers with state-of-the-art AI career guidance, intelligent resume matching, and verified job opportunities.</p>
       </div>
 
       <div class="footer-section">
@@ -1304,6 +1558,29 @@
   </button>
 
   <script>
+    // Profile Dropdown Toggle
+    function toggleProfileMenu(e) {
+      if (e) e.stopPropagation();
+      const menu = document.getElementById('profileDropdownMenu');
+      const btn = document.getElementById('profileMenuBtn');
+      if (menu) {
+        menu.classList.toggle('show');
+      }
+      if (btn) {
+        btn.classList.toggle('active');
+      }
+    }
+
+    document.addEventListener('click', function(e) {
+      const container = document.getElementById('profileDropdownContainer');
+      const menu = document.getElementById('profileDropdownMenu');
+      const btn = document.getElementById('profileMenuBtn');
+      if (container && !container.contains(e.target)) {
+        if (menu) menu.classList.remove('show');
+        if (btn) btn.classList.remove('active');
+      }
+    });
+
     // Theme Toggle Functionality
     function toggleTheme() {
       const body = document.body;
