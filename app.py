@@ -349,6 +349,7 @@ def health():
     return jsonify({
         "status": "healthy",
         "service": "SkillMatch AI - AI Job Recommendation & Career Guidance System",
+        "build_version": "v1.2.0-brand-color-update",
         "database": os.path.exists(DB_PATH),
         "ai_model": model is not None,
         "timestamp": datetime.now().isoformat()
